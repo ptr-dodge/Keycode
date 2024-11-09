@@ -1,0 +1,259 @@
+@import url(OpenSans.css);
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+html,
+body {
+  height: 100%;
+  width: 100%;
+}
+/* @media (min-width:800px) {
+    html {
+        height: 142.857%;
+        transform-origin: 0 0;
+        transform: scale(0.7);
+    }
+} */
+body {
+  font-size: 25px;
+  font-family: "Open Sans", sans-serif;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  align-items: center;
+}
+button {
+  display: inline-block;
+  font-size: 1em;
+  border: 4px solid #999;
+  border-radius: 0.7rem;
+  padding: 0.5rem 1rem;
+  cursor: pointer;
+}
+button:hover {
+  background: #fdd;
+}
+p {
+  font-size: 25px;
+}
+textarea {
+  height: 45px;
+}
+input[type="radio"] {
+  opacity: 0;
+}
+input[type="radio"] + label {
+  cursor: pointer;
+  margin-left: -8px;
+  display: inline-block;
+  padding: 13px 0;
+}
+input[type="radio"] + label:before {
+  content: "";
+  background: #fff;
+  border-radius: 100%;
+  border: 3px solid #888;
+  display: inline-block;
+  width: 18px;
+  height: 18px;
+  position: relative;
+  top: 2px;
+  cursor: pointer;
+}
+input[type="radio"]:checked + label:before {
+  background: #444;
+  box-shadow: inset 0 0 0 2px white;
+}
+#container {
+  width: 700px;
+  background: #ddf;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+#modal_outer {
+  display: none;
+  height: 100%;
+  width: 100%;
+  z-index: 100;
+  background: rgba(0, 0, 0, 0.7);
+  position: fixed;
+  top: 0;
+  left: 0;
+  justify-content: center;
+  align-items: center;
+}
+#modal_outer #modal_mid {
+  width: 90%;
+  background: whitesmoke;
+  padding: 1em;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  border: 2px solid #444;
+  border-radius: 5px;
+}
+#modal_outer #modal_mid #modal_inner {
+  margin-bottom: 0.5rem;
+  padding: 0.5em;
+}
+#list_of_tabs {
+  width: 100%;
+  background: white;
+  display: flex;
+  justify-content: space-between;
+}
+#list_of_tabs a {
+  display: inline-block;
+  border: 4px solid #ddf;
+  border-bottom: none;
+  border-radius: 10px 10px 0 0;
+  font-size: 1em;
+  padding: 0.5rem;
+  text-decoration: none;
+  color: #333333;
+  font-weight: bold;
+}
+#list_of_tabs a:focus {
+  outline: 0;
+}
+#list_of_tabs a .sel {
+  background: #ddf;
+}
+#content_of_tabs {
+  width: 100%;
+  padding: 0.5em;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+#content_of_tabs #key_shapes {
+  display: flex;
+  align-items: center;
+}
+#content_of_tabs #key_shapes p {
+  font-size: 0.8em;
+}
+#content_of_tabs #content_bitting textarea,
+#content_of_tabs #content_bitting input[type="text"] {
+  font-size: 1.2rem;
+  border: 2px solid #999;
+  padding: 3px 6px;
+  margin: 7px 0 0 0;
+  font-family: "Lucida Console", monospace;
+  resize: none;
+}
+#content_of_tabs #content_bitting small {
+  font-size: 1rem;
+}
+#content_of_tabs #content_bitting #types {
+  padding: 0.5em 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-evenly;
+}
+#content_of_tabs #content_align {
+  width: 100%;
+}
+#content_of_tabs #content_align #align_tools {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+#content_of_tabs #content_align #align_tools2 {
+  padding: 0.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+#content_of_tabs #content_photo ul {
+  margin-left: 2em;
+}
+#content_of_tabs #content_photo ul + p {
+  margin: 1em 0;
+}
+#align {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+#align canvas {
+  width: 60%;
+}
+#code {
+  padding: 0 0 15px 0;
+  border-spacing: 0;
+}
+#code th {
+  font-weight: bold;
+  font-size: 70%;
+  padding: 0px 10px;
+  border: none;
+  color: #333;
+}
+#code td {
+  width: 60px;
+  text-align: center;
+  padding: 0px 10px;
+  font-size: 50%;
+}
+#code td .sel {
+  border-color: #888 !important;
+}
+#code tr:nth-child(1) td {
+  font-family: monospace;
+  font-size: 140%;
+  font-weight: bold;
+  border: 4px solid rgba(0, 0, 0, 0);
+  border-bottom: none;
+  background: #eee;
+  height: 60px;
+}
+#code tr:nth-child(2) td {
+  border: 4px solid rgba(0, 0, 0, 0);
+  border-top: none;
+}
+#code tr:nth-child(3) td {
+  font-size: 20px;
+}
+#graph {
+  margin: 0.5rem 0;
+}
+#footer {
+  font-size: 20px;
+  text-align: right;
+  padding: 0.5em;
+}
+#footer a {
+  text-decoration: none;
+  padding-right: 20px;
+}
+#footer a:hover {
+  color: red;
+  background: inherit;
+}
+.hide {
+  display: none;
+}
+.hl {
+  border-color: #fcc !important;
+  background: #fee !important;
+  cursor: pointer;
+}
+.good {
+  background: #8f8 !important;
+}
+.maybe {
+  background: #ff8 !important;
+}
+.bad {
+  background: #f44 !important;
+}

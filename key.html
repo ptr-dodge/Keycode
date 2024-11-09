@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta name="viewport" content="width=720,user-scalable=no" />
+    <meta charset="UTF-8" />
+    <title>Key Code From Photograph</title>
+
+    <script src="./js/three.min.js"></script>
+    <script src="./js/jquery.min.js"></script>
+    <script src="./js/key.js"></script>
+
+    <link rel="stylesheet" href="./css/main.css" />
+  </head>
+
+  <body onload="main()">
+    <div id="container">
+      <div id="modal_outer">
+        <div id="modal_mid">
+          <div id="modal_inner"></div>
+          <button
+            onclick="$('#modal_outer').css('display', 'none');"
+            id="modal_ok"
+          >
+            Okay
+          </button>
+        </div>
+      </div>
+
+      <div id="list_of_tabs">
+        <a href="#" id="tab_intro" class="sel">Intro</a>
+        <a href="#" id="tab_bitting">Bitting</a>
+        <a href="#" id="tab_photo">Photo</a>
+        <a href="#" id="tab_align">Align</a>
+        <a href="#" id="tab_code">Get Code</a>
+      </div>
+
+      <div id="content_of_tabs">
+        <div id="content_intro" class="hide">
+          <p>
+            In the USA, nearly all affordable residential door locks use one of
+            two key types: SC1 (Schlage) or KW1 (Kwikset). Each key is uniquely
+            identified by a five-digit code, with each digit indicating the
+            depth of a cut that aligns with a specific pin or wafer within the
+            lock. Some locks also use six-cut variants, identified as SC4 and
+            KW10. Most locksmiths, as well as vendors from flea markets, eBay,
+            Craigslist, and similar platforms, can cut a key based on this code.
+          </p>
+
+          <div id="key_shapes">
+            <div id="svg">
+              <img src="./img/key_shapes.svg" />
+            </div>
+            <p>
+              The head shape may vary. The keyway shape is what matters, but
+              it's harder to judge. Click or tap image to enlarge.
+            </p>
+          </div>
+
+          <p>
+            This tool can determine that code from a photograph of the key. A
+            couple startups offer apps that do something similar under the hood;
+            but perhaps you'd rather use a local locksmith than wait for a key
+            by mail, or perhaps your photo of the key doesn't meet their
+            standards, or perhaps you just want to understand how it works
+            yourself.
+          </p>
+          <p style="text-align: right">
+            <button onclick="$('#tab_bitting').click()">
+              Next <span style="color: #555">&#9654;</span>
+            </button>
+          </p>
+        </div>
+        <div id="content_bitting" class="hide">
+          <p>
+            The bitting of a key is the geometric pattern of cuts that
+            represents a particular code. Choose a predefined bitting, or enter
+            it manually.
+          </p>
+          <div id="types">
+            <button onclick="bitting('kw', 5)">KW1</button>
+            <button onclick="bitting('kw', 6)">KW10</button>
+            <button onclick="bitting('sc', 5)">SC1</button>
+            <button onclick="bitting('sc', 6)">SC4</button>
+          </div>
+          <p>
+            The spacings from the shoulder of the key to the center of each cut are:
+            <div>
+              <input id="bitting_spacings" type="text" size="48" />
+            </div>
+            
+            <small>inches, comma-separated list, in same order as code (usually bow to tip)</small>
+          </p>
+
+          <p>
+            The maximum width of the key (before it's cut) is:<br />
+            <input id="bitting_width" type="text" size="7" />
+            <span style="font-size: 70%"> inches </span>
+          </p>
+
+          <p>
+            For each code, the key width at bottom of cut is:<br />
+            <textarea
+              id="bitting_depths"
+              type="text"
+              cols="47"
+              rows="2"
+            ></textarea
+            ><br />
+            
+            <span style="font-size: 70%">
+              inches, comma-separated list, first width is code 0, then 1, then
+              ...
+            </span>
+          </p>
+
+          <p style="text-align: right">
+            <button onclick="$('#tab_photo').click()">
+              Next <span style="color: #555">&#9654;</span>
+            </button>
+          </p>
+        </div>
+        <div id="content_photo" class="hide">
+          <input type="file" accept="image/*;" id="file" class="hide" />
+          <p>In an ideal photo:</p>
+          <ul>
+            <li>The key fills a lot of the frame.</li>
+            <li>
+              The background is uniform, with high contrast against the key.
+            </li>
+            <li>The lighting is bright, soft, and uniform.</li>
+            <li>
+              The key lies within a few degrees of flat in the plane of the
+              image.
+            </li>
+          </ul>
+          <p>
+            <button onclick="$('#file').click()">Get Photo</button> 
+            <button onclick="loadSampleImage()">Use Sample</button>
+          </p>
+          <p>
+            You can still get the code from pretty bad photos; but aligning the
+            outline will be harder, and you may have to judge the edges of each
+            cut manually instead of automatically.
+          </p>
+        </div>
+
+        <div id="content_align" class="hide">
+          <div id="align_tools">
+            <input
+              type="radio"
+              name="manip_mouse"
+              value="viewport"
+              id="manip_viewport"
+              checked
+            />
+            <label for="manip_viewport"> zoom/pan </label> &ensp;
+            <input
+              type="radio"
+              name="manip_mouse"
+              value="move"
+              id="manip_move"
+            />
+            <label for="manip_move"> move </label> &nbsp;
+            <input
+              type="radio"
+              name="manip_mouse"
+              value="rotate_scale"
+              id="manip_rotate_scale"
+            />
+            <label for="manip_rotate_scale"> rotate/scale </label> &nbsp;
+            <input
+              type="radio"
+              name="manip_mouse"
+              value="free_xfrm"
+              id="manip_free_xfrm"
+            />
+            <label for="manip_free_xfrm"> free xfrm </label> &nbsp;
+            <button onclick="help()">?</button>&nbsp;
+          </div>
+          <div id="align"></div>
+          <img src="#" id="photo" class="hide" />
+          <canvas src="#" id="photoc" class="hide"></canvas>
+          <div id="align_tools2">
+            <div>
+              Zoom:
+              <button onclick="zoom(+1)">In</button>&nbsp;
+              <button onclick="zoom(-1)">Out</button>&nbsp;
+            </div>
+            <button onclick="resetViewport()">Fit</button> 
+            <button onclick="mirror()">Mirror</button> &nbsp;
+            <button onclick="resetHomography(); render();">Reset</button>
+          </div>
+        </div>
+        <div id="content_code" class="hide">
+          <p>The code for your key is:</p>
+
+          <table id="code"></table>
+
+          <canvas width="680" height="420" id="graph"></canvas>
+
+          <p>
+            If the detected edges of the cuts look wrong, then click or tap the
+            bottom of a cut in the previous tab to place it manually.
+          </p>
+        </div>
+      </div>
+
+      <div id="footer">
+        &copy; 2018 <a href="https://cq.cx/">Jonathan Westhues</a>
+      </div>
+    </div>
+  </body>
+</html>
