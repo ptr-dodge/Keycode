@@ -1,6 +1,6 @@
-let sampleImage = "./img/sample.jfif";
+const sampleImage = "./img/sample.jfif";
 
-var xfrm = {
+const xfrm = {
   pixelsPerInch: 360,
   vw: 700,
   vh: 660,
@@ -967,7 +967,10 @@ function render() {
     scene.add(new THREE.Mesh(lgs[c], pool.m.l[c]));
   }
 
-  if ($("input[name=manip_mouse]:checked").val() === "free_xfrm") {
+  if (
+    document.querySelector("input[name=manip_mouse]:checked")?.value ===
+    "free_xfrm"
+  ) {
     for (var i = 0; i < 4; i++) {
       var xs = i & 1 ? 1 : -1,
         ys = i & 2 ? 1 : -1,
@@ -1442,48 +1445,27 @@ function main() {
   const tabList = document.getElementById("list_of_tabs").children;
   initializeTabs(tabList);
 
-  //  bitting('sc', 5);
-
   // Initialize behavior
   initializeHoverAndTouch();
 
-  $("#file").change(loadImageFromFile);
+  document.getElementById("file").addEventListener("change", loadImageFromFile);
 
   renderer = new THREE.WebGLRenderer({ antialias: true });
   renderer.setSize(xfrm.vw, xfrm.vh);
 
-  var al = $("#align")[0];
+  var al = document.getElementById("align");
   al.appendChild(renderer.domElement);
-  al.onmousemove = mouseMove;
-  al.onmousedown = mouseDown;
-  al.onmouseup = mouseUp;
-  al.onwheel = mouseWheel;
-  al.ontouchstart = touchStart;
-  al.ontouchmove = touchMove;
-  al.ontouchend = touchEnd;
+  al.addEventListener("mousemove", mouseMove);
+  al.addEventListener("mousedown", mouseDown);
+  al.addEventListener("mouseup", mouseUp);
+  al.addEventListener("wheel", mouseWheel);
+  al.addEventListener("touchstart", touchStart);
+  al.addEventListener("touchmove", touchMove);
+  al.addEventListener("touchend", touchEnd);
 
-  $("input[name=manip_mouse]").change(function () {
+  $("input[name=manip_mouse]").change(() => {
     render();
   });
-
-  $("#svg").click(function () {
-    var svg = $("<div>").html($("#svg").html());
-    svg.css("transform", "scale(2.4) translate(100px, 25px)");
-    svg.css("pointer-events", "none");
-    $("#modal_inner").html("").append(svg);
-    $("#modal_outer").css("display", "flex");
-  });
-
-  if (/(android)/i.test(navigator.userAgent)) {
-    $("body").add("#modal_outer").css("height", "100vh");
-  }
-
-  if (/0.7/.test($("html").css("transform"))) {
-    // fix vertical scrollbar in Firefox, Chrome
-    var h = $("#container").height();
-    $("html").css("height", "100%");
-    $("#container").height(h);
-  }
 }
 
 window.onload = main;
