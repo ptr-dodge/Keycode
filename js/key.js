@@ -1090,6 +1090,16 @@ function mirror() {
     render();
 }
 
+function modalMessage(v) {
+    $('#modal_inner').html(v);
+    $('#modal_outer').css('display', 'flex');
+}
+
+function help() {
+    modalMessage('Align the key in your photo to the guides. Consider only the maximum width of the key (red-to-red) and the position of the shoulder (blue).These should be accurate to about 0.001", so zoom in for the final adjustment.<br><br>If the key is flat in the plane of the image, then you can align it with only the move and rotate/scale tools. If it\'s not, then use free transform.<br><br>The edges of the cuts will be detected automatically. If they\'re wrong, then zoom in for precision and click or tap to place manually, again to clear.');
+}
+
+
 function main() {
     var first = true;
     $('#list_of_tabs').children().each(function() {
@@ -1192,11 +1202,4 @@ function main() {
     }
 }
 
-function modalMessage(v) {
-    $('#modal_inner').html(v);
-    $('#modal_outer').css('display', 'flex');
-}
-
-function help() {
-    modalMessage('Align the key in your photo to the guides. Consider only the maximum width of the key (red-to-red) and the position of the shoulder (blue).These should be accurate to about 0.001", so zoom in for the final adjustment.<br><br>If the key is flat in the plane of the image, then you can align it with only the move and rotate/scale tools. If it\'s not, then use free transform.<br><br>The edges of the cuts will be detected automatically. If they\'re wrong, then zoom in for precision and click or tap to place manually, again to clear.');
-}
+window.onload = main

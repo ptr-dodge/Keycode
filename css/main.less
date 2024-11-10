@@ -132,6 +132,10 @@ input[type="radio"]:checked + label:before {
   display: flex;
   justify-content: space-between;
 
+  .sel {
+    background: #ddf;
+  }
+
   a {
     display: inline-block;
     border: 4px solid #ddf;
@@ -145,10 +149,6 @@ input[type="radio"]:checked + label:before {
 
     &:focus {
       outline: 0;
-    }
-
-    .sel {
-      background: #ddf;
     }
   }
 }

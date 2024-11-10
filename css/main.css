@@ -108,6 +108,9 @@ input[type="radio"]:checked + label:before {
   display: flex;
   justify-content: space-between;
 }
+#list_of_tabs .sel {
+  background: #ddf;
+}
 #list_of_tabs a {
   display: inline-block;
   border: 4px solid #ddf;
@@ -121,9 +124,6 @@ input[type="radio"]:checked + label:before {
 }
 #list_of_tabs a:focus {
   outline: 0;
-}
-#list_of_tabs a .sel {
-  background: #ddf;
 }
 #content_of_tabs {
   width: 100%;
