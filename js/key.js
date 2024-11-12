@@ -156,7 +156,7 @@ function loadImage(uri, sample) {
 }
 
 function loadSampleImage() {
-  const sampleImage = "./img/sample.jfif";
+  const sampleImage = "./images/sample.jfif";
 
   bitting("kw", 5);
   loadImage(sampleImage, true);
