@@ -29,6 +29,20 @@ let config = {
   // hg is homography from photo bitmap coords to screen (rectified) coords, inverseHomography is inverse
   homography: [],
   inverseHomography: [],
+
+  brands: {
+    kw: {
+      spacings: [0.247, 0.397, 0.547, 0.697, 0.847, 0.997],
+      depths: ["unused", 0.329, 0.306, 0.283, 0.26, 0.237, 0.214, 0.191],
+      width: "0.335",
+    },
+
+    sc: {
+      spacings: [0.231, 0.3872, 0.5434, 0.6996, 0.8558, 1.012],
+      depths: [0.335, 0.32, 0.305, 0.29, 0.275, 0.26, 0.245, 0.23, 0.215, 0.2],
+      width: "0.343",
+    },
+  },
 };
 
 let renderer,
@@ -42,7 +56,7 @@ let cv = [];
 let manualDepths = {};
 let pool;
 
-function bitting(mfgr, pins) {
+function bitting(brand, pins) {
   let spacings = [];
   let depths = [];
   let width = "";
@@ -51,7 +65,7 @@ function bitting(mfgr, pins) {
   let widthInput = document.getElementById("bitting_width");
   let depthInput = document.getElementById("bitting_depths");
 
-  switch (mfgr) {
+  switch (brand) {
     case "kw":
       spacings = [0.247, 0.397, 0.547, 0.697, 0.847, 0.997];
       depths = ["unused", 0.329, 0.306, 0.283, 0.26, 0.237, 0.214, 0.191];
@@ -65,7 +79,7 @@ function bitting(mfgr, pins) {
       break;
     // we can add more cases for handling more key types
     default:
-      // Handle unexpected mfgr values here if needed
+      // Handle unexpected brand values here if needed
       break;
   }
 
@@ -88,7 +102,7 @@ function bitting(mfgr, pins) {
 function loadImage(uri, sample) {
   let photoElement = document.getElementById("photo");
   let modal = document.getElementById("modal_outer");
-  let modalInner = document.getElementById("modal_inner")
+  let modalInner = document.getElementById("modal_inner");
   let modalButton = modal.querySelector("#modal_ok");
 
   photoElement.onload = () => {
@@ -147,12 +161,12 @@ function loadImage(uri, sample) {
       "Loaded sample image. The bitting has been set to KW1.<br><br>This image has already been aligned to the red and blue guides. If you select the Align tab, then you'll see the correct code.<br><br>When you load your own image, you'll need to align it to the guides by hand. Try moving and rotating the sample image. Watch how the green detected cuts and the code change, to learn how the tools work.<br><br>If the detected edges of the cuts are wrong, then click or tap to place manually, again to clear."
     );
   } else {
-    modalInner.innerHTML = "Loading image..."
+    modalInner.innerHTML = "Loading image...";
     modalButton.style.display = "none";
     modal.style.display = "flex";
   }
 
-  photoElement.src = uri
+  photoElement.src = uri;
 }
 
 function loadSampleImage() {
@@ -337,10 +351,11 @@ function Vector2(x, y) {
 function parseBittings() {
   // Helper function to parse input as an array of floats
   function parseFloatArray(input) {
-    return input
-      .split(",")
-      .map(parseFloat)
-      .filter((num) => !isNaN(num));
+    return input.split(",").reduce((result, item) => {
+      const num = parseFloat(item);
+      if (!isNaN(num)) result.push(num);
+      return result;
+    }, []);
   }
 
   // Collect data from DOM and parse
