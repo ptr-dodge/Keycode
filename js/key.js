@@ -1,3 +1,5 @@
+"use strict";
+
 let config = {
   pixelsPerInch: 360,
   vw: 700,
@@ -106,8 +108,8 @@ function loadImage(uri, sample) {
   let modalButton = modal.querySelector("#modal_ok");
 
   photoElement.onload = () => {
-    let manager = new THREE.LoadingManager();
-    let loader = new THREE.TextureLoader(manager);
+    const manager = new THREE.LoadingManager();
+    const loader = new THREE.TextureLoader(manager);
 
     loader.load(
       uri,
@@ -118,7 +120,8 @@ function loadImage(uri, sample) {
         canvas.width = img.naturalWidth;
         canvas.height = img.naturalHeight;
 
-        let ctx = canvas.getContext("2d");
+        const ctx = canvas.getContext("2d");
+        ctx.willReadFrequently = true;
         ctx.drawImage(img, 0, 0);
 
         photoBitmap = ctx.getImageData(0, 0, canvas.width, canvas.height).data;
@@ -410,10 +413,10 @@ function plotColorChannels(digit) {
   let xmax = sp.x[sp.x.length - 1],
     xmin = sp.x[0];
 
-  mapX = function (x) {
+  function mapX(x) {
     return ((x - xmin) * 700) / (xmax - xmin);
   };
-  mapY = function (y) {
+  function mapY(y) {
     return 370 - 1.3 * y;
   };
 
@@ -546,7 +549,7 @@ function getKeyCode() {
       rightR = 0,
       rightG = 0,
       rightB = 0;
-    for (i = pr.length - 1; i >= 1; i--) {
+    for (let i = pr.length - 1; i >= 1; i--) {
       rightR += pr[i];
       rightG += pg[i];
       rightB += pb[i];
@@ -567,9 +570,9 @@ function getKeyCode() {
     // high-pass filter to find edge
     let hpf = [0.4, 0.7, 1, -1, -0.7, -0.4],
       hpfd = [0, 0, 0];
-    for (i = 3; i < disc.length - 2; i++) {
+    for (let i = 3; i < disc.length - 2; i++) {
       let sum = 0;
-      for (j = 0; j < 6; j++) {
+      for (let j = 0; j < 6; j++) {
         sum += hpf[j] * disc[i + j - 3];
       }
       sum += 0;
@@ -581,10 +584,10 @@ function getKeyCode() {
     let maxNoise = 6,
       discmaxi = disc.length - 1,
       margin = ((beyond - slop) / step) | 0;
-    for (i = hpfd.length - 1; i >= hpfd.length - margin; i--) {
+    for (let i = hpfd.length - 1; i >= hpfd.length - margin; i--) {
       if (hpfd[i] > maxNoise) maxNoise = hpfd[i];
     }
-    for (i = hpfd.length - (margin + 1); i >= 0; i--) {
+    for (let i = hpfd.length - (margin + 1); i >= 0; i--) {
       if (hpfd[i] > maxNoise * 3) {
         let max = hpfd[i];
         // find the peak, allowing for a bit of non-monotonicity due to noise
@@ -610,7 +613,7 @@ function getKeyCode() {
       xedge = manualDepths[ysp];
     }
 
-    for (i = 0; i < bitting.depths.length; i++) {
+    for (let i = 0; i < bitting.depths.length; i++) {
       let x = bitting.depths[i];
       if (isNaN(x)) continue;
       let dx = x - xedge;
@@ -750,7 +753,7 @@ function render() {
   pool.g.p = new THREE.Geometry();
 
   pool.g.q = {};
-  for (i = 0; i < 4; i++) {
+  for (let i = 0; i < 4; i++) {
     pool.g.q[i] = new THREE.Geometry();
   }
 
@@ -969,9 +972,9 @@ function render() {
         ys = i & 2 ? 1 : -1,
         m = 600 / config.va;
       let a = Vector2(config.vdx, -config.vdy);
-      b = a.plus(Vector2(0, m * ys));
-      c = b.plus(Vector2(m * xs, 0));
-      d = a.plus(Vector2(m * xs, 0));
+      let b = a.plus(Vector2(0, m * ys));
+      let c = b.plus(Vector2(m * xs, 0));
+      let d = a.plus(Vector2(m * xs, 0));
 
       let tg = pool.g.q[i];
       tg.vertices.push(a.TV3(), b.TV3(), c.TV3());
