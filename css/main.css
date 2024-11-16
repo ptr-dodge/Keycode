@@ -10,13 +10,6 @@ body {
   height: 100%;
   width: 100%;
 }
-/* @media (min-width:800px) {
-    html {
-        height: 142.857%;
-        transform-origin: 0 0;
-        transform: scale(0.7);
-    }
-} */
 body {
   font-size: 25px;
   font-family: "Open Sans", sans-serif;
@@ -142,7 +135,7 @@ input[type="radio"]:checked + label:before {
   font-size: 0.8em;
 }
 #content_of_tabs #content_bitting textarea,
-#content_of_tabs #content_bitting input[type="text"] {
+#content_of_tabs #content_bitting input {
   font-size: 1.2rem;
   border: 2px solid #999;
   padding: 3px 6px;
@@ -153,11 +146,10 @@ input[type="radio"]:checked + label:before {
 #content_of_tabs #content_bitting small {
   font-size: 1rem;
 }
-#content_of_tabs #content_bitting #types {
-  padding: 0.5em 0;
-  display: flex;
-  align-items: center;
-  justify-content: space-evenly;
+#content_of_tabs #content_bitting #types select {
+  font-size: large;
+  margin: 0.5em 0;
+  padding: 0.5em;
 }
 #content_of_tabs #content_align {
   width: 100%;

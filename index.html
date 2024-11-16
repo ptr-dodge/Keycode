@@ -76,14 +76,8 @@
             represents a particular code. Choose a predefined bitting, or enter
             it manually.
           </p>
-          <!-- <div id="types">
-            <button onclick="bitting('kw', 5)">KW1</button>
-            <button onclick="bitting('kw', 6)">KW10</button>
-            <button onclick="bitting('sc', 5)">SC1</button>
-            <button onclick="bitting('sc', 6)">SC4</button>
-          </div> -->
           <div id="types">
-            <select id="typesDropdown">
+            <select>
               <option value="">-</option>
               <option value="kw-5">KW1</option>
               <option value="kw-6">KW10</option>
@@ -107,7 +101,7 @@
 
           <p>
             The maximum width of the key (before it's cut) is:<br />
-            <input id="bitting_width" type="text" size="7" />
+            <input id="bitting_width" type="number" size="7" />
             <span style="font-size: 70%"> inches </span>
           </p>
 

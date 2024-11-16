@@ -32,19 +32,19 @@ let config = {
   homography: [],
   inverseHomography: [],
 
-  brands: {
-    kw: {
-      spacings: [0.247, 0.397, 0.547, 0.697, 0.847, 0.997],
-      depths: ["unused", 0.329, 0.306, 0.283, 0.26, 0.237, 0.214, 0.191],
-      width: "0.335",
-    },
+  // brands: {
+  //   kw: {
+  //     spacings: [0.247, 0.397, 0.547, 0.697, 0.847, 0.997],
+  //     depths: ["unused", 0.329, 0.306, 0.283, 0.26, 0.237, 0.214, 0.191],
+  //     width: "0.335",
+  //   },
 
-    sc: {
-      spacings: [0.231, 0.3872, 0.5434, 0.6996, 0.8558, 1.012],
-      depths: [0.335, 0.32, 0.305, 0.29, 0.275, 0.26, 0.245, 0.23, 0.215, 0.2],
-      width: "0.343",
-    },
-  },
+  //   sc: {
+  //     spacings: [0.231, 0.3872, 0.5434, 0.6996, 0.8558, 1.012],
+  //     depths: [0.335, 0.32, 0.305, 0.29, 0.275, 0.26, 0.245, 0.23, 0.215, 0.2],
+  //     width: "0.343",
+  //   },
+  // },
 };
 
 let renderer,
@@ -1109,14 +1109,9 @@ function resetViewport() {
 }
 
 function mirror() {
-  let t;
-  t = config.pa;
-  config.pa = config.pd;
-  config.pd = t;
-  t = config.pb;
-  config.pb = config.pc;
-  config.pc = t;
-
+  // Swap values using destructuring
+  [config.pa, config.pd] = [config.pd, config.pa];
+  [config.pb, config.pc] = [config.pc, config.pb];
   solveForHomography();
   render();
 }
@@ -1426,7 +1421,7 @@ function main() {
 
   // Event listeners for buttons
   document
-    .getElementById("typesDropdown")
+    .querySelector("#types select")
     .addEventListener("change", function (event) {
       const selectedValue = event.target.value.split("-");
       const type = selectedValue[0];
