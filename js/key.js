@@ -1424,6 +1424,40 @@ function main() {
   const tabList = document.getElementById("list_of_tabs").children;
   initializeTabs(tabList);
 
+  // Event listeners for buttons
+  document
+    .getElementById("typesDropdown")
+    .addEventListener("change", function (event) {
+      const selectedValue = event.target.value.split("-");
+      const type = selectedValue[0];
+      const number = parseInt(selectedValue[1], 10);
+
+      // Call the bitting function with the parsed values
+      bitting(type, number);
+    });
+
+  document.getElementById("loadSample").addEventListener("click", () => {
+    loadSampleImage();
+  });
+
+  document.getElementById("zoomIn").addEventListener("click", () => {
+    zoom(1);
+  });
+  document.getElementById("zoomOut").addEventListener("click", () => {
+    zoom(-1);
+  });
+
+  document.getElementById("fit").addEventListener("click", () => {
+    resetViewport();
+  });
+  document.getElementById("mirror").addEventListener("click", () => {
+    mirror();
+  });
+  document.getElementById("reset").addEventListener("click", () => {
+    resetHomography();
+    render();
+  });
+
   // Initialize behavior
   initializeHoverAndTouch();
 
@@ -1456,4 +1490,4 @@ function main() {
   });
 }
 
-window.onload = main;
+export { main };

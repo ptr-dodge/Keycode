@@ -5,9 +5,9 @@
     <meta charset="UTF-8" />
     <title>Key Code From Photograph</title>
 
-    <script src="./js/three.min.js"></script>
-    <script src="./js/jquery.min.js"></script>
-    <script defer src="./js/key.js"></script>
+    <script src="./js/utils/three.min.js"></script>
+    <script src="./js/utils/jquery.min.js"></script>
+    <script type="module" src="./js/index.js"></script>
 
     <link rel="stylesheet" href="./css/main.css" />
   </head>
@@ -76,19 +76,33 @@
             represents a particular code. Choose a predefined bitting, or enter
             it manually.
           </p>
-          <div id="types">
+          <!-- <div id="types">
             <button onclick="bitting('kw', 5)">KW1</button>
             <button onclick="bitting('kw', 6)">KW10</button>
             <button onclick="bitting('sc', 5)">SC1</button>
             <button onclick="bitting('sc', 6)">SC4</button>
+          </div> -->
+          <div id="types">
+            <select id="typesDropdown">
+              <option value="">-</option>
+              <option value="kw-5">KW1</option>
+              <option value="kw-6">KW10</option>
+              <option value="sc-5">SC1</option>
+              <option value="sc-6">SC4</option>
+            </select>
           </div>
+
           <p>
-            The spacings from the shoulder of the key to the center of each cut are:
-            <div>
-              <input id="bitting_spacings" type="text" size="48" />
-            </div>
-            
-            <small>inches, comma-separated list, in same order as code (usually bow to tip)</small>
+            The spacings from the shoulder of the key to the center of each cut
+          are:
+          <div>
+            <input id="bitting_spacings" type="text" size="48" />
+          </div>
+
+          <small
+            >inches, comma-separated list, in same order as code (usually bow to
+            tip)</small
+          >
           </p>
 
           <p>
@@ -106,7 +120,7 @@
               rows="2"
             ></textarea
             ><br />
-            
+
             <span style="font-size: 70%">
               inches, comma-separated list, first width is code 0, then 1, then
               ...
@@ -134,8 +148,8 @@
             </li>
           </ul>
           <p>
-            <button onclick="$('#file').click()">Get Photo</button> 
-            <button onclick="loadSampleImage()">Use Sample</button>
+            <button onclick="$('#file').click()">Get Photo</button>
+            <button id="loadSample">Use Sample</button>
           </p>
           <p>
             You can still get the code from pretty bad photos; but aligning the
@@ -183,12 +197,12 @@
           <div id="align_tools2">
             <div>
               Zoom:
-              <button onclick="zoom(+1)">In</button>&nbsp;
-              <button onclick="zoom(-1)">Out</button>&nbsp;
+              <button id="zoomIn">In</button>&nbsp;
+              <button id="zoomOut">Out</button>&nbsp;
             </div>
-            <button onclick="resetViewport()">Fit</button> 
-            <button onclick="mirror()">Mirror</button> &nbsp;
-            <button onclick="resetHomography(); render();">Reset</button>
+            <button id="fit">Fit</button>
+            <button id="mirror">Mirror</button> &nbsp;
+            <button id="reset">Reset</button>
           </div>
         </div>
         <div id="content_code" class="hide">
