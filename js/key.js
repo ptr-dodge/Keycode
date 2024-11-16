@@ -214,59 +214,53 @@ function normalizeHomography() {
 
 function solveForHomography() {
   function solve(ins, outs, hg) {
-    let i,
-      j,
-      jj,
-      A = [],
-      b = [];
+    const A = [];
+    const b = [];
+    const numIterations = 10;
+    const numRows = 8;
+    const numCols = 9;
 
-    for (i = 0; i < 8; i += 2) {
-      let pin = ins[i / 2],
-        pout = outs[i / 2];
+    // Helper function to populate A and b
+    function setMatrixRow(i, pin, pout) {
+      const xPin = pin.x;
+      const yPin = pin.y;
+      const xPout = pout.x;
+      const yPout = pout.y;
 
-      A[i] = [
-        pin.x,
-        pin.y,
-        1,
-        0,
-        0,
-        0,
-        -pout.x * pin.x,
-        -pout.x * pin.y,
-        -pout.x,
-      ];
-      A[i + 1] = [
-        0,
-        0,
-        0,
-        pin.x,
-        pin.y,
-        1,
-        -pout.y * pin.x,
-        -pout.y * pin.y,
-        -pout.y,
-      ];
+      A[i] = [xPin, yPin, 1, 0, 0, 0, -xPout * xPin, -xPout * yPin, -xPout];
+      A[i + 1] = [0, 0, 0, xPin, yPin, 1, -yPout * xPin, -yPout * yPin, -yPout];
 
-      b[i] = [pout.x];
-      b[i + 1] = [pout.y];
+      b[i] = xPout;
+      b[i + 1] = yPout;
+    }
+
+    // Fill matrix A and vector b
+    for (let i = 0; i < numRows; i += 2) {
+      const pin = ins[i / 2];
+      const pout = outs[i / 2];
+      setMatrixRow(i, pin, pout);
     }
 
     let x = hg;
 
-    // minimize norm(A*x) by coordinate descent
-    for (let iter = 0; iter < 10; iter++) {
-      for (j = 0; j < 9; j++) {
-        let num = 0,
-          den = 0;
-        for (i = 0; i < 8; i++) {
+    // Minimize norm(A*x) by coordinate descent
+    for (let iter = 0; iter < numIterations; iter++) {
+      for (let j = 0; j < numCols; j++) {
+        let num = 0;
+        let den = 0;
+
+        for (let i = 0; i < numRows; i++) {
           den += A[i][j] * A[i][j];
+
           let sum = 0;
-          for (jj = 0; jj < 9; jj++) {
-            if (jj == j) continue;
+          for (let jj = 0; jj < numCols; jj++) {
+            if (jj === j) continue;
             sum += A[i][jj] * x[jj];
           }
+
           num += A[i][j] * sum;
         }
+
         x[j] = -num / den;
       }
     }
@@ -407,7 +401,8 @@ function plotColorChannels(digit) {
 
   let maxDepth = 100;
   bittings.depths.forEach(function (d) {
-    if (!isNaN(d) && d < maxDepth) maxDepth = d; // max depth is min remaining width
+    if (!isNaN(d) && d < maxDepth) maxDepth = d;
+    // max depth is min remaining width
   });
 
   let xmax = sp.x[sp.x.length - 1],
@@ -415,11 +410,10 @@ function plotColorChannels(digit) {
 
   function mapX(x) {
     return ((x - xmin) * 700) / (xmax - xmin);
-  };
+  }
   function mapY(y) {
     return 370 - 1.3 * y;
-  };
-
+  }
   ctx.strokeStyle = "#888";
   ctx.lineWidth = 4;
   ctx.beginPath();
@@ -561,7 +555,8 @@ function getKeyCode() {
         dr = rar - pr[i - 1],
         dg = rag - pr[i - 1],
         db = rab - pr[i - 1],
-        dd = Math.sqrt(2 * dr * dr + 4 * dg * dg + 3 * db * db) / 3; // vaguely perceptual weight
+        dd = Math.sqrt(2 * dr * dr + 4 * dg * dg + 3 * db * db) / 3;
+      // vaguely perceptual weight
 
       disc[i] = dd;
     }
@@ -707,7 +702,10 @@ function render() {
 
   if (!pool) {
     pool = {};
-    pool.m = { l: {}, q: {} };
+    pool.m = {
+      l: {},
+      q: {},
+    };
 
     [
       ["r", 0xff0000],
@@ -1438,7 +1436,9 @@ function main() {
     fr.readAsDataURL(ev.target.files[0]);
   });
 
-  renderer = new THREE.WebGLRenderer({ antialias: true });
+  renderer = new THREE.WebGLRenderer({
+    antialias: true,
+  });
   renderer.setSize(config.vw, config.vh);
 
   let al = document.getElementById("align");
