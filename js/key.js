@@ -48,13 +48,13 @@ let config = {
 };
 
 let renderer,
-  toDispose,
+  // toDispose,
   photoTexture,
   photoMaterial,
   photoBitmap,
   photoWidth,
   photoHeight;
-let cv = [];
+let codeValue = [];
 let manualDepths = {};
 let pool;
 
@@ -277,10 +277,11 @@ function solveForHomography() {
 }
 
 function resetHomography() {
-  let img = $("#photo")[0],
-    r = img.naturalWidth / img.naturalHeight,
-    mx = config.vw / 2,
-    my = config.vh / 2;
+  let img = document.querySelector("#photo");
+  let r = img.naturalWidth / img.naturalHeight;
+  let mx = config.vw / 2;
+  let my = config.vh / 2;
+
   if (r > mx / my) {
     my = mx / r;
   } else {
@@ -356,9 +357,13 @@ function parseBittings() {
   }
 
   // Collect data from DOM and parse
-  const width = parseFloat($("#bitting_width").val());
-  const spacings = parseFloatArray($("#bitting_spacings").val());
-  const depths = parseFloatArray($("#bitting_depths").val());
+  const width = parseFloat(document.querySelector("#bitting_width").value);
+  const spacings = parseFloatArray(
+    document.querySelector("#bitting_spacings").value
+  );
+  const depths = parseFloatArray(
+    document.querySelector("#bitting_depths").value
+  );
 
   // Validation checks
   if (isNaN(width) || spacings.length < 2 || depths.length < 2) {
@@ -387,15 +392,17 @@ function parseBittings() {
 }
 
 function plotColorChannels(digit) {
-  let sp = cv[digit];
+  let sp = codeValue[digit];
   if (!sp) return;
 
-  $("#code td").removeClass("sel");
-  $("#code tr td:nth-child(" + (digit + 2).toString() + ")").addClass("sel");
+  document.querySelector("#code td").classList.remove("sel");
+  document
+    .querySelector(`#code tr td:nth-child(${(digit + 2).toString()})`)
+    .classList.add("sel");
 
   let bittings = parseBittings();
 
-  let canvas = $("#graph")[0],
+  let canvas = document.querySelector("#graph"),
     ctx = canvas.getContext("2d");
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 
@@ -493,7 +500,7 @@ function getKeyCode() {
     if (d < mind) mind = d;
   });
 
-  cv = [];
+  codeValue = [];
 
   bitting.spacings.slice(0).forEach(function (ysp) {
     if (isNaN(ysp)) return;
@@ -618,80 +625,126 @@ function getKeyCode() {
       }
     }
 
-    cv.push({
+    codeValue.push({
       red: pr,
       green: pg,
       blue: pb,
       disc: disc,
       x: px,
+      y: y,
       n: pr.length,
       xedge: xedge,
       code: code,
       xerror: dxedge,
       manual: manual,
-      y: y,
     });
   });
 }
 
 function makeKeyCodeHtml() {
-  $("#code").html("");
+  // Helper Functions
+  function addHeaderRow(tra, trb, trc) {
+    let th1 = document.createElement("th");
+    th1.textContent = "code";
+    tra.appendChild(th1);
 
-  let table = $("#code"),
-    tra = $("<tr>"),
-    trb = $("<tr>"),
-    trc = $("<tr>"),
-    i = 0;
-  tra.append($("<th>").text("code"));
-  trb.append($("<th>").text("error"));
-  trc.append($("<th>"));
-  cv.forEach(function (sp) {
+    let th2 = document.createElement("th");
+    th2.textContent = "error";
+    trb.appendChild(th2);
+
+    let th3 = document.createElement("th");
+    trc.appendChild(th3);
+  }
+
+  function getFormattedData(sp) {
     let axe = Math.abs(sp.xerror),
       code = sp.code,
       xe = sp.xerror.toFixed(3),
-      cl;
-    if (sp.xerror > 0) xe = "+" + xe;
+      tableText = "bad"; // Default tableText in case of invalid data
+
+    // Format the error value and determine the "goodness" of the result
+    if (sp.xerror > 0) {
+      xe = "+" + xe;
+    }
 
     if (axe < 0.002) {
-      cl = "good";
+      tableText = "good";
     } else if (axe < 0.005) {
-      cl = "maybe";
+      tableText = "maybe";
     } else if (axe < 0.02) {
-      cl = "bad";
+      tableText = "bad";
     } else {
-      cl = "bad";
       xe = "???";
       code = "?";
     }
 
-    let tda = $("<td>").text(code),
-      tdb = $("<td>").text(xe).addClass(cl),
-      tdc = $("<td>").html(sp.manual ? "&#128274;" : "");
+    return { axe, code, xe, tableText, isManual: sp.manual };
+  }
 
-    tda.add(tdb).hover(
-      function () {
-        tda.add(tdb).addClass("hl");
-      },
-      function () {
-        tda.add(tdb).removeClass("hl");
-      }
-    );
+  function createTableCell(content) {
+    let td = document.createElement("td");
+    td.innerHTML = content;
+    return td;
+  }
 
-    let saveI = i;
-    tda.add(tdb).click(function () {
-      plotColorChannels(saveI);
+  function addHoverEffect(tda, tdb) {
+    tda.addEventListener("mouseenter", function () {
+      tda.classList.add("hl");
+      tdb.classList.add("hl");
     });
+    tda.addEventListener("mouseleave", function () {
+      tda.classList.remove("hl");
+      tdb.classList.remove("hl");
+    });
+  }
 
-    tra.append(tda);
-    trb.append(tdb);
-    trc.append(tdc);
+  function addClickHandler(tda, tdb, i) {
+    tda.addEventListener("click", function () {
+      plotColorChannels(i);
+    });
+    tdb.addEventListener("click", function () {
+      plotColorChannels(i);
+    });
+  }
 
-    i++;
+  let codeElement = document.getElementById("code");
+  codeElement.innerHTML = ""; // Clear existing content
+
+  // Create the table and rows
+  let table = document.getElementById("code");
+  let tra = document.createElement("tr");
+  let trb = document.createElement("tr");
+  let trc = document.createElement("tr");
+
+  // Add header rows
+  addHeaderRow(tra, trb, trc);
+
+  // Loop through each entry in `cv` and populate the table
+  codeValue.forEach(function (sp, i) {
+    const { axe, code, xe, tableText, isManual } = getFormattedData(sp);
+
+    // Create table cells for code, error, and manual check
+    let tda = createTableCell(code),
+      tdb = createTableCell(xe);
+    tdb.classList.add(tableText);
+    let tdc = createTableCell(isManual ? "&#128274;" : "");
+
+    // Add hover effect and click handler
+    addHoverEffect(tda, tdb);
+    addClickHandler(tda, tdb, i);
+
+    // Append cells to the respective rows
+    tra.appendChild(tda);
+    trb.appendChild(tdb);
+    trc.appendChild(tdc);
   });
-  table.append(tra);
-  table.append(trb);
-  table.append(trc);
 
+  // Append rows to the table
+  table.appendChild(tra);
+  table.appendChild(trb);
+  table.appendChild(trc);
+
+  // Initially plot the color channels for the first entry
   plotColorChannels(0);
 }
 
@@ -892,7 +945,7 @@ function render() {
     );
   });
 
-  cv.forEach(function (sp) {
+  codeValue.forEach(function (sp) {
     let x = -b.width / 2 + sp.xedge;
     inchLine(x, sp.y - 0.03, x, sp.y + 0.03, 1, "y");
     if (sp.manual) {
@@ -1007,63 +1060,86 @@ function fromMouse(x, y) {
 }
 
 function onePointMoveInteraction(x, y, xp, yp, xd, yd) {
-  let dx = xp - x,
-    dy = yp - y;
+  // Helper function to handle viewport movement
+  function handleViewportMove(dx, dy) {
+    config.vdx += dx / config.va;
+    config.vdy += dy / config.va;
+  }
 
-  switch ($("input[name=manip_mouse]:checked").val()) {
+  // Helper function to handle object movement
+  function handleMove(dx, dy) {
+    let dp = Vector2(-dx, dy).scaledBy(1 / config.va);
+    ["pa", "pb", "pc", "pd"].forEach(function (p) {
+      config[p] = config[p].plus(dp);
+    });
+  }
+
+  // Helper function to handle rotation and scaling
+  function handleRotateScale(x, y, xp, yp) {
+    let c = Vector2(0, config.vh / 4);
+    let prev = fromMouse(xp, yp).minus(c);
+    let now = fromMouse(x, y).minus(c);
+
+    let thp = Math.atan2(prev.y, prev.x);
+    let thn = Math.atan2(now.y, now.x);
+    let dtheta = thp - thn;
+    let a = now.length() / prev.length();
+
+    ["pa", "pb", "pc", "pd"].forEach(function (p) {
+      config[p] = config[p]
+        .minus(c)
+        .rotatedAboutOrigin(dtheta)
+        .scaledBy(a)
+        .plus(c);
+    });
+  }
+
+  // Helper function to handle free transformation
+  function handleFreeXfrm(dx, dy, xd, yd) {
+    let i = 0;
+    if (xd < config.vw / 2) i |= 1;
+    if (yd < config.vh / 2) i |= 2;
+
+    let p = ["pa", "pb", "pc", "pd"];
+    p.sort(function (a, b) {
+      return config[a].y - config[b].y;
+    });
+
+    if (config[p[0]].x < config[p[1]].x) {
+      [p[0], p[1]] = [p[1], p[0]]; // Swap p[0] and p[1]
+    }
+    if (config[p[2]].x < config[p[3]].x) {
+      [p[2], p[3]] = [p[3], p[2]]; // Swap p[2] and p[3]
+    }
+
+    p = p[i];
+
+    config[p] = config[p].plus(Vector2(-dx, dy).scaledBy(1 / config.va));
+  }
+
+  let dx = xp - x;
+  let dy = yp - y;
+
+  // Get the value of the selected input without jQuery
+  const manipMouse = document.querySelector("input[name=manip_mouse]:checked");
+  if (!manipMouse) return; // If no input is checked, exit early
+  const mode = manipMouse.value;
+
+  switch (mode) {
     case "viewport":
-      config.vdx += dx / config.va;
-      config.vdy += dy / config.va;
+      handleViewportMove(dx, dy);
       break;
 
     case "move":
-      let dp = Vector2(-dx, dy).scaledBy(1 / config.va);
-      ["pa", "pb", "pc", "pd"].forEach(function (p) {
-        config[p] = config[p].plus(dp);
-      });
+      handleMove(dx, dy);
       break;
 
     case "rotate_scale":
-      let c = Vector2(0, config.vh / 4),
-        prev = fromMouse(xp, yp).minus(c),
-        now = fromMouse(x, y).minus(c);
-
-      let thp = Math.atan2(prev.y, prev.x),
-        thn = Math.atan2(now.y, now.x),
-        dtheta = thp - thn,
-        a = now.length() / prev.length();
-
-      ["pa", "pb", "pc", "pd"].forEach(function (p) {
-        config[p] = config[p]
-          .minus(c)
-          .rotatedAboutOrigin(dtheta)
-          .scaledBy(a)
-          .plus(c);
-      });
+      handleRotateScale(x, y, xp, yp);
       break;
 
     case "free_xfrm":
-      let i = 0;
-      if (xd < config.vw / 2) i |= 1;
-      if (yd < config.vh / 2) i |= 2;
-
-      let p = ["pa", "pb", "pc", "pd"];
-      p.sort(function (a, b) {
-        return config[a].y - config[b].y;
-      });
-      if (config[p[0]].x < config[p[1]].x) {
-        let t = p[0];
-        p[0] = p[1];
-        p[1] = t;
-      }
-      if (config[p[2]].x < config[p[3]].x) {
-        let t = p[2];
-        p[2] = p[3];
-        p[3] = t;
-      }
-      p = p[i];
-
-      config[p] = config[p].plus(Vector2(-dx, dy).scaledBy(1 / config.va));
+      handleFreeXfrm(dx, dy, xd, yd);
       break;
   }
 
@@ -1288,18 +1364,28 @@ function mouseWheel(ev) {
   // Calculate the scaling factor based on delta
   let scaleFactor = Math.exp(-d / 30);
 
-  // Determine which transformation to apply based on user input
-  const manipulationMode = $("input[name=manip_mouse]:checked").val();
-  if (manipulationMode === "viewport") {
-    config.va *= Math.pow(scaleFactor, 10);
-  } else if (manipulationMode === "move") {
-    ["pa", "pb", "pc", "pd"].forEach((p) => {
-      config[p] = config[p].scaledBy(scaleFactor);
-    });
-    solveForHomography();
+  // Get the value of the selected manipulation mode without jQuery
+  const manipulationMode = document.querySelector(
+    "input[name=manip_mouse]:checked"
+  );
+  if (!manipulationMode) return; // If no input is checked, exit early
+  const mode = manipulationMode.value;
+
+  // Apply transformation based on the manipulation mode
+  switch (mode) {
+    case "viewport":
+      config.va *= Math.pow(scaleFactor, 10);
+      break;
+
+    case "move":
+      ["pa", "pb", "pc", "pd"].forEach((p) => {
+        config[p] = config[p].scaledBy(scaleFactor);
+      });
+      solveForHomography();
+      break;
   }
 
-  // Prevent default behavior and render the updated view
+  // Prevent default behavior (scroll zooming) and render the updated view
   ev.preventDefault();
   render();
 }
@@ -1480,9 +1566,12 @@ function main() {
   al.addEventListener("touchend", touchEnd);
   al.addEventListener("touchmove", touchMove);
 
-  $("input[name=manip_mouse]").change(() => {
-    render();
+  document.querySelectorAll("input[name=manip_mouse]").forEach(input => {
+    input.addEventListener("change", () => {
+      render();
+    });
   });
+  
 }
 
 export { main };

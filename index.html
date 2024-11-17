@@ -6,7 +6,7 @@
     <title>Key Code From Photograph</title>
 
     <script src="./js/utils/three.min.js"></script>
-    <script src="./js/utils/jquery.min.js"></script>
+    <!-- <script src="./js/utils/jquery.min.js"></script> -->
     <script type="module" src="./js/index.js"></script>
 
     <link rel="stylesheet" href="./css/main.css" />
@@ -18,7 +18,7 @@
         <div id="modal_mid">
           <div id="modal_inner"></div>
           <button
-            onclick="$('#modal_outer').css('display', 'none');"
+            onclick="document.querySelector('#modal_outer').style.display='none'"
             id="modal_ok"
           >
             Okay
@@ -65,7 +65,7 @@
             yourself.
           </p>
           <p style="text-align: right">
-            <button onclick="$('#tab_bitting').click()">
+            <button onclick="document.querySelector('#tab_bitting').click()">
               Next <span style="color: #555">&#9654;</span>
             </button>
           </p>
@@ -122,7 +122,7 @@
           </p>
 
           <p style="text-align: right">
-            <button onclick="$('#tab_photo').click()">
+            <button onclick="document.querySelector('#tab_photo').click()">
               Next <span style="color: #555">&#9654;</span>
             </button>
           </p>
@@ -142,7 +142,7 @@
             </li>
           </ul>
           <p>
-            <button onclick="$('#file').click()">Get Photo</button>
+            <button onclick="document.querySelector('#file').click()">Get Photo</button>
             <button id="loadSample">Use Sample</button>
           </p>
           <p>
