@@ -1345,48 +1345,13 @@ function mouseMove(ev) {
   render();
 }
 
-//   let quantum = 500;
-//   let d = ev.deltaY;
-
-//   // Normalize deltaY to the initial quantum value
-//   if (Math.abs(d) < quantum) {
-//     quantum = Math.abs(d);
-//   }
-//   d /= quantum;
-
-//   // Calculate the scaling factor based on delta
-//   let scaleFactor = Math.exp(-d / 30);
-
-//   // Get the value of the selected manipulation mode without jQuery
-//   const manipulationMode = document.querySelector(
-//     "input[name=manip_mouse]:checked"
-//   );
-//   if (!manipulationMode) return; // If no input is checked, exit early
-//   const mode = manipulationMode.value;
-
-//   // Apply transformation based on the manipulation mode
-//   switch (mode) {
-//     case "viewport":
-//       config.va *= Math.pow(scaleFactor, 10);
-//       break;
-
-//     case "move":
-//       ["pa", "pb", "pc", "pd"].forEach((p) => {
-//         config[p] = config[p].scaledBy(scaleFactor);
-//       });
-//       solveForHomography();
-//       break;
-//   }
-
-//   // Prevent default behavior (scroll zooming) and render the updated view
-//   ev.preventDefault();
-//   render();
-// }
 
 // Function to handle both mouse wheel and arrow key input
 function handleInput(ev) {
-  let quantum = 500;
-  let d = 0;
+  let quantum = 500; // Quantum for mouse wheel normalization
+  let d = 0; // Delta value for input scaling
+  let translation = { x: 0, y: 0 }; // Translation values
+  let scaleFactor = Math.exp(-d / 30);
 
   // Check if it's a mouse wheel event
   if (ev.type === "wheel") {
@@ -1396,19 +1361,28 @@ function handleInput(ev) {
       quantum = Math.abs(d);
     }
     d /= quantum;
+    // Zoom behavior (kept here if needed in the future)
   }
   // Check if it's an arrow key event
   else if (ev.type === "keydown") {
     // Arrow keys: up (38), down (40), left (37), right (39)
-    if (ev.key === "ArrowUp") d = -1;
-    else if (ev.key === "ArrowDown") d = 1;
-    else if (ev.key === "ArrowLeft") d = -1;
-    else if (ev.key === "ArrowRight") d = 1;
-    else return; // Ignore other keys
+    switch (ev.key) {
+      case "ArrowUp":
+        translation.y = scaleFactor; // Move up
+        break;
+      case "ArrowDown":
+        translation.y = -scaleFactor; // Move down
+        break;
+      case "ArrowLeft":
+        translation.x = -scaleFactor; // Move left
+        break;
+      case "ArrowRight":
+        translation.x = scaleFactor; // Move right
+        break;
+      default:
+        return; // Ignore other keys
+    }
   }
-
-  // Calculate the scaling factor based on delta
-  let scaleFactor = Math.exp(-d / 30);
 
   // Get the value of the selected manipulation mode without jQuery
   const manipulationMode = document.querySelector(
@@ -1420,12 +1394,16 @@ function handleInput(ev) {
   // Apply transformation based on the manipulation mode
   switch (mode) {
     case "viewport":
-      config.va *= Math.pow(scaleFactor, 10);
+      // Translate the viewport
+      config.vx += translation.x;
+      config.vy += translation.y;
       break;
 
     case "move":
+      // Translate the elements (e.g., homography points)
       ["pa", "pb", "pc", "pd"].forEach((p) => {
-        config[p] = config[p].scaledBy(scaleFactor);
+        config[p].x += translation.x;
+        config[p].y += translation.y;
       });
       solveForHomography();
       break;
@@ -1439,6 +1417,7 @@ function handleInput(ev) {
   // Render the updated view
   render();
 }
+
 
 function touchStart(ev) {
   saveTouches(ev, true);
