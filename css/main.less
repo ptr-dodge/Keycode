@@ -94,18 +94,21 @@ input[type="radio"]:checked + label:before {
   align-items: center;
 }
 
-#modal_outer {
-  display: none;
+#modal_outer[open] {
+  display: flex;
   height: 100%;
   width: 100%;
-  z-index: 100;
-  background: rgba(0, 0, 0, 0.7);
   position: fixed;
-  top: 0;
-  left: 0;
-
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background-color: transparent;
   justify-content: center;
   align-items: center;
+
+  &::backdrop {
+    background: rgba(0, 0, 0, 0.7);
+  }
 
   #modal_mid {
     width: 90%;

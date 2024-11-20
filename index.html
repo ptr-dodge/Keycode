@@ -4,7 +4,7 @@
     <meta name="viewport" content="width=720,user-scalable=no" />
     <meta charset="UTF-8" />
     <title>Key Code From Photograph</title>
-
+    <link rel="shortcut icon" href="data:" type="image/x-icon">
     <script src="./js/three.min.js"></script>
     <script type="module" src="./js/index.js"></script>
 
@@ -13,17 +13,12 @@
 
   <body>
     <div id="container">
-      <div id="modal_outer">
+      <dialog id="modal_outer">
         <div id="modal_mid">
           <div id="modal_inner"></div>
-          <button
-            onclick="document.querySelector('#modal_outer').style.display='none'"
-            id="modal_ok"
-          >
-            Okay
-          </button>
+          <button id="modal_ok">Okay</button>
         </div>
-      </div>
+      </dialog>
 
       <div id="list_of_tabs">
         <a href="#" id="tab_intro" class="sel">Intro</a>
@@ -64,7 +59,7 @@
             yourself.
           </p>
           <p style="text-align: right">
-            <button onclick="document.querySelector('#tab_bitting').click()">
+            <button id="nextButton" data-tabid="tab_bitting">
               Next <span style="color: #555">&#9654;</span>
             </button>
           </p>
@@ -115,13 +110,12 @@
             ><br />
 
             <span style="font-size: 70%">
-              inches, comma-separated list, first width is code 0, then 1, then
-              ...
+              inches, comma-separated list, first width is code 0, then 1, etc...
             </span>
           </p>
 
           <p style="text-align: right">
-            <button onclick="document.querySelector('#tab_photo').click()">
+            <button id="nextButton" data-tabid="tab_photo">
               Next <span style="color: #555">&#9654;</span>
             </button>
           </p>
@@ -141,7 +135,7 @@
             </li>
           </ul>
           <p>
-            <button onclick="document.querySelector('#file').click()">Get Photo</button>
+            <button id="fileButton">Get Photo</button>
             <button id="loadSample">Use Sample</button>
           </p>
           <p>

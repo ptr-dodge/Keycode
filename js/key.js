@@ -47,13 +47,12 @@ let config = {
   // },
 };
 
-let renderer,
-  // toDispose,
-  photoTexture,
-  photoMaterial,
-  photoBitmap,
-  photoWidth,
-  photoHeight;
+let renderer;
+let photoTexture;
+let photoMaterial;
+let photoBitmap;
+let photoWidth;
+let photoHeight;
 let codeValue = [];
 let manualDepths = {};
 let pool;
@@ -103,9 +102,22 @@ function bitting(brand, pins) {
 
 function loadImage(uri, sample) {
   let photoElement = document.getElementById("photo");
-  let modal = document.getElementById("modal_outer");
+  let modalElement = document.getElementById("modal_outer");
   let modalInner = document.getElementById("modal_inner");
-  let modalButton = modal.querySelector("#modal_ok");
+  let modalButton = modalElement.querySelector("#modal_ok");
+
+  if (sample) {
+    modal(
+      "Loaded sample image. The bitting has been set to KW1.<br><br>This image has already been aligned to the red and blue guides. If you select the Align tab, then you'll see the correct code.<br><br>When you load your own image, you'll need to align it to the guides by hand. Try moving and rotating the sample image. Watch how the green detected cuts and the code change, to learn how the tools work.<br><br>If the detected edges of the cuts are wrong, then click or tap to place manually, again to clear."
+    );
+  } else {
+    if (modalElement.open) {
+      console.log("modal is open... closing it");
+      modalElement.close();
+    }
+    modalInner.innerHTML = "Loading image...";
+    modalElement.showModal();
+  }
 
   photoElement.onload = () => {
     const manager = new THREE.LoadingManager();
@@ -146,8 +158,7 @@ function loadImage(uri, sample) {
         getKeyCode();
 
         if (!sample) {
-          modal.style.display = "none";
-          modalButton.style.display = "inline-block";
+          closeModal();
         }
 
         document.getElementById("tab_align").click();
@@ -158,16 +169,6 @@ function loadImage(uri, sample) {
       }
     );
   };
-
-  if (sample) {
-    modalMessage(
-      "Loaded sample image. The bitting has been set to KW1.<br><br>This image has already been aligned to the red and blue guides. If you select the Align tab, then you'll see the correct code.<br><br>When you load your own image, you'll need to align it to the guides by hand. Try moving and rotating the sample image. Watch how the green detected cuts and the code change, to learn how the tools work.<br><br>If the detected edges of the cuts are wrong, then click or tap to place manually, again to clear."
-    );
-  } else {
-    modalInner.innerHTML = "Loading image...";
-    modalButton.style.display = "none";
-    modal.style.display = "flex";
-  }
 
   photoElement.src = uri;
 }
@@ -1192,13 +1193,13 @@ function mirror() {
   render();
 }
 
-function modalMessage(v) {
-  document.getElementById("modal_inner").innerHTML = v;
-  document.getElementById("modal_outer").style.display = "flex";
+function modal(message) {
+  document.getElementById("modal_inner").innerHTML = message;
+  document.getElementById("modal_outer").showModal();
 }
 
 function help() {
-  modalMessage(
+  modal(
     "Align the key in your photo to the guides. Consider only the maximum width of the key (red-to-red) and the position of the shoulder (blue).These should be accurate to about 0.001\", so zoom in for the final adjustment.<br><br>If the key is flat in the plane of the image, then you can align it with only the move and rotate/scale tools. If it's not, then use free transform.<br><br>The edges of the cuts will be detected automatically. If they're wrong, then zoom in for precision and click or tap to place manually, again to clear."
   );
 }
@@ -1231,7 +1232,7 @@ function handleTabClick(id, tabList) {
 // Validate if the tab click is allowed based on tab ID and app state
 function validateTabClick(id) {
   if ((id === "tab_align" || id === "tab_code") && !photoMaterial) {
-    modalMessage(
+    modal(
       "Need to load photograph of key before aligning and getting code."
     );
     return false;
@@ -1239,7 +1240,7 @@ function validateTabClick(id) {
 
   const b = parseBittings();
   if ((id === "tab_photo" || id === "tab_align" || id === "tab_code") && !b) {
-    modalMessage("Need to choose bitting before loading photograph.");
+    modal("Need to choose bitting before loading photograph.");
     return false;
   }
 
@@ -1539,6 +1540,30 @@ function main() {
     render();
   });
 
+  // handle the "ok" button for the modal
+  document.querySelector("#modal_ok").addEventListener("click", () => {
+    document.querySelector("#modal_outer").close();
+  });
+
+  // Sample image button
+  const sampleImageButton = document.getElementById("fileButton");
+  sampleImageButton.addEventListener("click", () => {
+    document.querySelector("#file").click();
+  });
+
+  // Set up click listeners for each next button
+  const nextButtons = document.querySelectorAll("#nextButton");
+  nextButtons.forEach((button) => {
+    button.addEventListener("click", () => {
+      // Get the data-tabid attribute of the clicked button
+      const tabId = button.getAttribute("data-tabid");
+
+      // Trigger the click event of the tab to advance to
+      const tab = document.getElementById(tabId);
+      if (tab) tab.click();
+    });
+  });
+
   // Initialize behavior
   initializeHoverAndTouch();
 
@@ -1566,12 +1591,11 @@ function main() {
   al.addEventListener("touchend", touchEnd);
   al.addEventListener("touchmove", touchMove);
 
-  document.querySelectorAll("input[name=manip_mouse]").forEach(input => {
+  document.querySelectorAll("input[name=manip_mouse]").forEach((input) => {
     input.addEventListener("change", () => {
       render();
     });
   });
-  
 }
 
 export { main };
