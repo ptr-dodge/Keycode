@@ -1345,15 +1345,67 @@ function mouseMove(ev) {
   render();
 }
 
-function mouseWheel(ev) {
-  let quantum = 500;
-  let d = ev.deltaY;
+//   let quantum = 500;
+//   let d = ev.deltaY;
 
-  // Normalize deltaY to the initial quantum value
-  if (Math.abs(d) < quantum) {
-    quantum = Math.abs(d);
+//   // Normalize deltaY to the initial quantum value
+//   if (Math.abs(d) < quantum) {
+//     quantum = Math.abs(d);
+//   }
+//   d /= quantum;
+
+//   // Calculate the scaling factor based on delta
+//   let scaleFactor = Math.exp(-d / 30);
+
+//   // Get the value of the selected manipulation mode without jQuery
+//   const manipulationMode = document.querySelector(
+//     "input[name=manip_mouse]:checked"
+//   );
+//   if (!manipulationMode) return; // If no input is checked, exit early
+//   const mode = manipulationMode.value;
+
+//   // Apply transformation based on the manipulation mode
+//   switch (mode) {
+//     case "viewport":
+//       config.va *= Math.pow(scaleFactor, 10);
+//       break;
+
+//     case "move":
+//       ["pa", "pb", "pc", "pd"].forEach((p) => {
+//         config[p] = config[p].scaledBy(scaleFactor);
+//       });
+//       solveForHomography();
+//       break;
+//   }
+
+//   // Prevent default behavior (scroll zooming) and render the updated view
+//   ev.preventDefault();
+//   render();
+// }
+
+// Function to handle both mouse wheel and arrow key input
+function handleInput(ev) {
+  let quantum = 500;
+  let d = 0;
+
+  // Check if it's a mouse wheel event
+  if (ev.type === "wheel") {
+    d = ev.deltaY;
+    // Normalize deltaY to the initial quantum value
+    if (Math.abs(d) < quantum) {
+      quantum = Math.abs(d);
+    }
+    d /= quantum;
   }
-  d /= quantum;
+  // Check if it's an arrow key event
+  else if (ev.type === "keydown") {
+    // Arrow keys: up (38), down (40), left (37), right (39)
+    if (ev.key === "ArrowUp") d = -1;
+    else if (ev.key === "ArrowDown") d = 1;
+    else if (ev.key === "ArrowLeft") d = -1;
+    else if (ev.key === "ArrowRight") d = 1;
+    else return; // Ignore other keys
+  }
 
   // Calculate the scaling factor based on delta
   let scaleFactor = Math.exp(-d / 30);
@@ -1379,8 +1431,12 @@ function mouseWheel(ev) {
       break;
   }
 
-  // Prevent default behavior (scroll zooming) and render the updated view
-  ev.preventDefault();
+  // Prevent default behavior (for arrow keys, prevent page scroll)
+  if (ev.type === "keydown") {
+    ev.preventDefault();
+  }
+
+  // Render the updated view
   render();
 }
 
@@ -1557,8 +1613,8 @@ function main() {
     });
   });
 
-  const helpButton = document.querySelector("#help")
-  helpButton.addEventListener("click", help)
+  const helpButton = document.querySelector("#help");
+  helpButton.addEventListener("click", help);
 
   // Initialize behavior
   initializeHoverAndTouch();
@@ -1582,7 +1638,10 @@ function main() {
   al.addEventListener("mouseup", mouseUp);
   al.addEventListener("mousedown", mouseDown);
   al.addEventListener("mousemove", mouseMove);
-  al.addEventListener("wheel", mouseWheel);
+
+  document.addEventListener("wheel", handleInput); // Mouse wheel
+  document.addEventListener("keydown", handleInput); // Arrow keys
+
   al.addEventListener("touchstart", touchStart);
   al.addEventListener("touchend", touchEnd);
   al.addEventListener("touchmove", touchMove);
