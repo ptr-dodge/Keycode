@@ -103,19 +103,14 @@ function bitting(brand, pins) {
 function loadImage(uri, sample) {
   let photoElement = document.getElementById("photo");
   let modalElement = document.getElementById("modal_outer");
-  let modalInner = document.getElementById("modal_inner");
-  let modalButton = modalElement.querySelector("#modal_ok");
 
   if (sample) {
     modal(
       "Loaded sample image. The bitting has been set to KW1.<br><br>This image has already been aligned to the red and blue guides. If you select the Align tab, then you'll see the correct code.<br><br>When you load your own image, you'll need to align it to the guides by hand. Try moving and rotating the sample image. Watch how the green detected cuts and the code change, to learn how the tools work.<br><br>If the detected edges of the cuts are wrong, then click or tap to place manually, again to clear."
     );
   } else {
-    if (modalElement.open) {
-      console.log("modal is open... closing it");
-      modalElement.close();
-    }
-    modalInner.innerHTML = "Loading image...";
+    if (modalElement.open) modalElement.close();
+    modal("Loading image...");
     modalElement.showModal();
   }
 
@@ -1232,9 +1227,7 @@ function handleTabClick(id, tabList) {
 // Validate if the tab click is allowed based on tab ID and app state
 function validateTabClick(id) {
   if ((id === "tab_align" || id === "tab_code") && !photoMaterial) {
-    modal(
-      "Need to load photograph of key before aligning and getting code."
-    );
+    modal("Need to load photograph of key before aligning and getting code.");
     return false;
   }
 
@@ -1563,6 +1556,9 @@ function main() {
       if (tab) tab.click();
     });
   });
+
+  const helpButton = document.querySelector("#help")
+  helpButton.addEventListener("click", help)
 
   // Initialize behavior
   initializeHoverAndTouch();
