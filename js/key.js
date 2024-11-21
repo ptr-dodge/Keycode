@@ -1285,13 +1285,26 @@ function initializeHoverAndTouch() {
     element.blockMouseEnterUntil = 0;
   });
 }
+// Helper to get position relative to target's bounding rect
+function getRelativePosition(ev, target) {
+  let rect = target.getBoundingClientRect();
+  return {
+    x: ev.pageX - rect.left,
+    y: ev.pageY - rect.top
+  };
+}
 
+// Helper to check if a touch is within a threshold (for tap)
+function isTap(p1, p2, dt, threshold = 10, timeLimit = 200) {
+  let distance = p1.minus(p2).length();
+  return dt < timeLimit && distance < threshold;
+}
+
+// Handles touch event saving
 function saveTouches(ev, down) {
-  let r = ev.target.getBoundingClientRect();
   for (let i = 0; i < ev.touches.length; i++) {
     let touch = ev.touches[i],
-      x = touch.pageX - r.left,
-      y = touch.pageY - r.top,
+      { x, y } = getRelativePosition(touch, ev.target),
       id = touch.identifier;
 
     config.touch[id] = Vector2(x, y);
@@ -1302,60 +1315,62 @@ function saveTouches(ev, down) {
   }
 }
 
-function mouseUp(ev) {
-  let dt = Date.now() - config.mdt,
-    p = Vector2(ev.offsetX, ev.offsetY);
+// Handles mouse up event, with tap detection logic
+function mouseUp(event) {
+  let currentDate = Date.now() - config.mdt;
+  let point1 = Vector2(event.offsetX, event.offsetY);
+  let point2 = Vector2(config.mdx, config.mdy)
 
-  let dd = p.minus(Vector2(config.mdx, config.mdy)).length();
-
-  if (dt < 200 && dd < 10) {
-    onePointTapInteraction(ev.offsetX, ev.offsetY);
+  if (isTap(point1, point2, currentDate)) {
+    onePointTapInteraction(event.offsetX, event.offsetY);
   }
-  ev.preventDefault();
+  
+  event.preventDefault();
 }
 
-function mouseDown(ev) {
-  config.mx = ev.offsetX;
-  config.my = ev.offsetY;
+// Handles mouse down event, saving initial mouse position and time
+function mouseDown(event) {
+  config.mx = event.offsetX;
+  config.my = event.offsetY;
 
   config.mdx = config.mx;
   config.mdy = config.my;
 
   config.mdt = Date.now();
 
-  ev.preventDefault();
+  event.preventDefault();
 }
 
-function mouseMove(ev) {
-  if (!(ev.buttons & 1)) return;
+function mouseMove(event) {
+  if (!(event.buttons & 1)) return;
 
   onePointMoveInteraction(
-    ev.offsetX,
-    ev.offsetY,
+    event.offsetX,
+    event.offsetY,
     config.mx,
     config.my,
     config.mdx,
     config.mdy
   );
 
-  config.mx = ev.offsetX;
-  config.my = ev.offsetY;
+  config.mx = event.offsetX;
+  config.my = event.offsetY;
 
-  ev.preventDefault();
+  event.preventDefault();
   render();
 }
 
 
 // Function to handle both mouse wheel and arrow key input
-function handleInput(ev) {
+function handleInput(event) {
   let quantum = 500; // Quantum for mouse wheel normalization
   let d = 0; // Delta value for input scaling
   let translation = { x: 0, y: 0 }; // Translation values
   let scaleFactor = Math.exp(-d / 30);
 
   // Check if it's a mouse wheel event
-  if (ev.type === "wheel") {
-    d = ev.deltaY;
+  if (event.type === "wheel") {
+    d = event.deltaY;
     // Normalize deltaY to the initial quantum value
     if (Math.abs(d) < quantum) {
       quantum = Math.abs(d);
@@ -1364,9 +1379,9 @@ function handleInput(ev) {
     // Zoom behavior (kept here if needed in the future)
   }
   // Check if it's an arrow key event
-  else if (ev.type === "keydown") {
+  else if (event.type === "keydown") {
     // Arrow keys: up (38), down (40), left (37), right (39)
-    switch (ev.key) {
+    switch (event.key) {
       case "ArrowUp":
         translation.y = scaleFactor; // Move up
         break;
@@ -1401,17 +1416,17 @@ function handleInput(ev) {
 
     case "move":
       // Translate the elements (e.g., homography points)
-      ["pa", "pb", "pc", "pd"].forEach((p) => {
-        config[p].x += translation.x;
-        config[p].y += translation.y;
+      ["pa", "pb", "pc", "pd"].forEach((point) => {
+        config[point].x += translation.x;
+        config[point].y += translation.y;
       });
       solveForHomography();
       break;
   }
 
   // Prevent default behavior (for arrow keys, prevent page scroll)
-  if (ev.type === "keydown") {
-    ev.preventDefault();
+  if (event.type === "keydown") {
+    event.preventDefault();
   }
 
   // Render the updated view
