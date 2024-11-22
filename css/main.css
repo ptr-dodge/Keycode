@@ -1,9 +1,43 @@
 @import url(OpenSans.css);
+*:focus {
+  outline: 1px solid #6bbcdf;
+}
+:root {
+  font-size: 1em;
+}
 * {
-  box-sizing: border-box;
   margin: 0;
   padding: 0;
+  box-sizing: border-box;
   border: 0;
+}
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+p,
+a,
+div,
+section {
+  font-family: "OpenSans", sans-serif;
+}
+body,
+html {
+  width: 100%;
+  height: 100%;
+}
+body {
+  background: #202020;
+  color: #e6e6e6;
+  font-size: 1rem;
+  font-family: "OpenSans", sans-serif;
+}
+@media (min-width: 800px) {
+  body {
+    zoom: 70%;
+  }
 }
 html,
 body {
@@ -17,113 +51,79 @@ body {
   flex-direction: column;
   justify-content: flex-start;
   align-items: center;
-  zoom: 70%;
 }
-button {
-  display: inline-block;
+p h2 {
+  font-size: 0.8em;
+}
+.btn {
   font-size: 1em;
-  border: 4px solid #999;
-  border-radius: 0.7rem;
-  padding: 0.5rem 1rem;
+  border: 1px solid #adadad;
+  border-radius: 0.5em;
+  padding: 0.5em 1em;
   cursor: pointer;
-}
-button:hover {
-  background: #fdd;
-}
-p {
-  font-size: 25px;
-}
-textarea {
-  height: 45px;
-}
-input[type="radio"] {
-  opacity: 0;
-}
-input[type="radio"] + label {
-  cursor: pointer;
-  margin-left: -8px;
-  display: inline-block;
-  padding: 13px 0;
-}
-input[type="radio"] + label:before {
-  content: "";
-  background: #fff;
-  border-radius: 100%;
-  border: 3px solid #888;
-  display: inline-block;
-  width: 18px;
-  height: 18px;
-  position: relative;
-  top: 2px;
-  cursor: pointer;
-}
-input[type="radio"]:checked + label:before {
-  background: #444;
-  box-shadow: inset 0 0 0 2px white;
 }
 #container {
   width: 700px;
-  background: #ddf;
+  background: #151515;
   display: flex;
   flex-direction: column;
   justify-content: center;
   align-items: center;
 }
 #modal_outer[open] {
-  display: flex;
   height: 100%;
-  width: 100%;
+  width: 90%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
   position: fixed;
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  background-color: transparent;
-  justify-content: center;
-  align-items: center;
+  background: transparent;
+  color: #e6e6e6;
 }
 #modal_outer[open]::backdrop {
-  background: rgba(0, 0, 0, 0.7);
+  background: #000000b3;
 }
 #modal_outer[open] #modal_mid {
-  width: 90%;
-  background: whitesmoke;
   padding: 1em;
+  box-shadow: 0 0 20px 12px black;
+  background: #000000b3;
   display: flex;
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  border: 2px solid #444;
-  border-radius: 5px;
+  border: 1px solid #303030;
+  border-radius: 0.5em;
 }
 #modal_outer[open] #modal_mid #modal_inner {
-  margin-bottom: 0.5rem;
-  padding: 0.5em;
+  padding: 1em 0;
 }
 #list_of_tabs {
   width: 100%;
-  background: white;
+  background: #252525;
   display: flex;
   justify-content: space-between;
 }
 #list_of_tabs .sel {
-  background: #ddf;
+  background: #151515;
 }
 #list_of_tabs a {
   display: inline-block;
-  border: 4px solid #ddf;
+  border: 1px solid #353535;
   border-bottom: none;
-  border-radius: 10px 10px 0 0;
-  font-size: 1em;
-  padding: 0.5rem;
+  border-radius: 0.5em 0.5em 0 0;
+  padding: 0.75rem;
+  cursor: pointer;
   text-decoration: none;
-  color: #333333;
+  color: #e7e7e7;
   font-weight: bold;
-}
-#list_of_tabs a:focus {
-  outline: 0;
+  font-size: 1em;
 }
 #content_of_tabs {
   width: 100%;
+  height: 100%;
   padding: 0.5em;
   display: flex;
   flex-direction: column;
@@ -137,17 +137,22 @@ input[type="radio"]:checked + label:before {
 #content_of_tabs #key_shapes p {
   font-size: 0.8em;
 }
+#content_of_tabs #content_bitting select {
+  border-radius: 0.5em;
+}
 #content_of_tabs #content_bitting textarea,
 #content_of_tabs #content_bitting input {
   font-size: 1.2rem;
   border: 2px solid #999;
+  border-radius: 0.5em;
   padding: 3px 6px;
-  margin: 7px 0 0 0;
+  margin: 0.25rem 0 0 0;
   font-family: "Lucida Console", monospace;
   resize: none;
 }
 #content_of_tabs #content_bitting small {
   font-size: 1rem;
+  margin: 1em 0;
 }
 #content_of_tabs #content_bitting #types select {
   font-size: large;
@@ -161,6 +166,10 @@ input[type="radio"]:checked + label:before {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  padding: 0.5rem;
+}
+#content_of_tabs #content_align #align_tools input {
+  scale: 150%;
 }
 #content_of_tabs #content_align #align_tools2 {
   padding: 0.5rem;
@@ -193,35 +202,39 @@ input[type="radio"]:checked + label:before {
   font-size: 70%;
   padding: 0px 10px;
   border: none;
-  color: #333;
+  color: #f5f5f5;
 }
 #code td {
-  width: 60px;
+  width: 3.75em;
   text-align: center;
-  padding: 0px 10px;
+  padding: 0px 0.5em;
   font-size: 50%;
 }
 #code td .sel {
-  border-color: #888 !important;
+  border-color: #dddddd !important;
 }
 #code tr:nth-child(1) td {
   font-family: monospace;
   font-size: 140%;
   font-weight: bold;
-  border: 4px solid rgba(0, 0, 0, 0);
+  border: 4px solid transparent;
   border-bottom: none;
-  background: #eee;
-  height: 60px;
+  height: 3.75em;
 }
 #code tr:nth-child(2) td {
-  border: 4px solid rgba(0, 0, 0, 0);
-  border-top: none;
+  border: 4px solid transparent;
+  border-top: 4px solid transparent;
+  color: black;
 }
 #code tr:nth-child(3) td {
   font-size: 20px;
 }
 #graph {
+  background: whitesmoke;
   margin: 0.5rem 0;
+}
+#svg img {
+  filter: invert(1);
 }
 #footer {
   font-size: 20px;
@@ -229,27 +242,28 @@ input[type="radio"]:checked + label:before {
   padding: 0.5em;
 }
 #footer a {
+  color: #ded754;
   text-decoration: none;
   padding-right: 20px;
 }
 #footer a:hover {
-  color: red;
+  color: #de8190;
   background: inherit;
 }
 .hide {
   display: none;
 }
 .hl {
-  border-color: #fcc !important;
-  background: #fee !important;
+  border-color: #e6e6e6 !important;
+  background: #101010 !important;
   cursor: pointer;
 }
 .good {
-  background: #8f8 !important;
+  background: #88ff88 !important;
 }
 .maybe {
-  background: #ff8 !important;
+  background: #ded754 !important;
 }
 .bad {
-  background: #f44 !important;
+  background: #de8190 !important;
 }

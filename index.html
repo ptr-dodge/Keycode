@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html>
-  <head>
+
+<head>
     <meta name="viewport" content="width=720,user-scalable=no" />
     <meta charset="UTF-8" />
     <title>Key Code From Photograph</title>
@@ -9,105 +10,90 @@
     <script type="module" src="./js/index.js"></script>
 
     <link rel="stylesheet" href="./css/main.css" />
-  </head>
+</head>
 
-  <body>
+<body>
     <div id="container">
-      <dialog id="modal_outer">
-        <div id="modal_mid">
-          <div id="modal_inner"></div>
-          <button id="modal_ok">Okay</button>
-        </div>
-      </dialog>
-
-      <div id="list_of_tabs">
-        <a href="#" id="tab_intro" class="sel">Intro</a>
-        <a href="#" id="tab_bitting">Bitting</a>
-        <a href="#" id="tab_photo">Photo</a>
-        <a href="#" id="tab_align">Align</a>
-        <a href="#" id="tab_code">Get Code</a>
-      </div>
-
-      <div id="content_of_tabs">
-        <div id="content_intro" class="hide">
-          <p>
-            In the USA, nearly all affordable residential door locks use one of
-            two key types: SC1 (Schlage) or KW1 (Kwikset). Each key is uniquely
-            identified by a five-digit code, with each digit indicating the
-            depth of a cut that aligns with a specific pin or wafer within the
-            lock. Some locks also use six-cut variants, identified as SC4 and
-            KW10. Most locksmiths, as well as vendors from flea markets, eBay,
-            Craigslist, and similar platforms, can cut a key based on this code.
-          </p>
-
-          <div id="key_shapes">
-            <div id="svg">
-              <img src="./images/key_shapes.svg" />
+        <dialog id="modal_outer">
+            <div id="modal_mid">
+                <div id="modal_inner"></div>
+                <button id="modal_ok" class="btn">Okay</button>
             </div>
-            <p>
-              The head shape may vary. The keyway shape is what matters, but
-              it's harder to judge. Click or tap image to enlarge.
-            </p>
-          </div>
+        </dialog>
 
-          <p>
-            This tool can determine that code from a photograph of the key. A
-            couple startups offer apps that do something similar under the hood;
-            but perhaps you'd rather use a local locksmith than wait for a key
-            by mail, or perhaps your photo of the key doesn't meet their
-            standards, or perhaps you just want to understand how it works
-            yourself.
-          </p>
-          <p style="text-align: right">
-            <button id="nextButton" data-tabid="tab_bitting">
+        <div id="list_of_tabs">
+            <a href="#" id="tab_intro" class="sel">Intro</a>
+            <a href="#" id="tab_bitting">Bitting</a>
+            <a href="#" id="tab_photo">Photo</a>
+            <a href="#" id="tab_align">Align</a>
+            <a href="#" id="tab_code">Get Code</a>
+        </div>
+
+        <div id="content_of_tabs">
+            <div id="content_intro" class="hide">
+                <p>
+                    In the USA, nearly all affordable residential door locks use one of two key types: SC1 (Schlage) or KW1 (Kwikset). Each key is uniquely identified by a five-digit code, with each digit indicating the depth of a cut that aligns with a specific pin or wafer within the lock. Some locks also use six-cut variants, identified as SC4 and KW10. Most locksmiths, as well as vendors from flea markets, eBay, Craigslist, and similar platforms, can cut a key based on this code.
+                </p>
+
+                <div id="key_shapes">
+                    <div id="svg">
+                        <img src="./images/key_shapes.svg" />
+                    </div>
+                    <p>
+                        The head shape may vary. The keyway shape is what matters, but it's harder to judge. Click or tap image to enlarge.
+                    </p>
+                </div>
+
+                <p>
+                    This tool can determine that code from a photograph of the key. A couple startups offer apps that do something similar under the hood; but perhaps you'd rather use a local locksmith than wait for a key by mail, or perhaps your photo of the key doesn't meet their standards, or perhaps you just want to understand how it works yourself.
+                </p>
+                <p style="text-align: right">
+                    <button id="nextButton" class="btn" data-tabid="tab_bitting">
               Next <span style="color: #555">&#9654;</span>
             </button>
-          </p>
-        </div>
-        <div id="content_bitting" class="hide">
-          <p>
-            The bitting of a key is the geometric pattern of cuts that
-            represents a particular code. Choose a predefined bitting, or enter
-            it manually.
-          </p>
-          <div id="types">
-            <select>
+                </p>
+            </div>
+            <div id="content_bitting" class="hide">
+                <p>
+                    The bitting of a key is the geometric pattern of cuts that represents a particular code. Choose a predefined bitting, or enter it manually.
+                </p>
+                <div id="types">
+                    <select>
               <option value="">-</option>
               <option value="kw-5">KW1</option>
               <option value="kw-6">KW10</option>
               <option value="sc-5">SC1</option>
               <option value="sc-6">SC4</option>
             </select>
-          </div>
+                </div>
 
-          <p>
-            The spacings from the shoulder of the key to the center of each cut
-          are:
-          <div>
-            <input id="bitting_spacings" type="text" size="48" />
-          </div>
+                <p>
+                    The spacings from the shoulder of the key to the center of each cut are:
+                    <div>
+                        <input id="bitting_spacings" type="text" placeholder="in" />
+                    </div>
 
-          <small
-            >inches, comma-separated list, in same order as code (usually bow to
+                    <small>inches, comma-separated list, in same order as code (usually bow to
             tip)</small
           >
           </p>
 
           <p>
-            The maximum width of the key (before it's cut) is:<br />
-            <input id="bitting_width" type="number" size="7" />
+            The maximum width of the key (before it's cut) is:
+            <input id="bitting_width" type="number" placeholder="in" />
             <span style="font-size: 70%"> inches </span>
           </p>
 
           <p>
-            For each code, the key width at bottom of cut is:<br />
+            <p>For each code, the key width at bottom of cut is:</p>
             <textarea
               id="bitting_depths"
               type="text"
               cols="47"
               rows="2"
+              placeholder="in"
             ></textarea
-            ><br />
+            >
 
             <span style="font-size: 70%">
               inches, comma-separated list, first width is code 0, then 1, etc...
@@ -115,7 +101,7 @@
           </p>
 
           <p style="text-align: right">
-            <button id="nextButton" data-tabid="tab_photo">
+            <button id="nextButton" class="btn" data-tabid="tab_photo">
               Next <span style="color: #555">&#9654;</span>
             </button>
           </p>
@@ -135,8 +121,8 @@
             </li>
           </ul>
           <p>
-            <button id="fileButton">Get Photo</button>
-            <button id="loadSample">Use Sample</button>
+            <button id="fileButton" class="btn">Get Photo</button>
+            <button id="loadSample" class="btn">Use Sample</button>
           </p>
           <p>
             You can still get the code from pretty bad photos; but aligning the
@@ -176,7 +162,7 @@
               id="manip_free_xfrm"
             />
             <label for="manip_free_xfrm"> free xfrm </label> 
-            <button id="help">?</button>
+            <button id="help" class="btn">?</button>
           </div>
           <div id="align"></div>
           <img src="#" id="photo" class="hide" />
@@ -184,12 +170,12 @@
           <div id="align_tools2">
             <div>
               Zoom:
-              <button id="zoomIn">In</button>
-              <button id="zoomOut">Out</button>
+              <button class="btn" id="zoomIn">In</button>
+              <button class="btn" id="zoomOut">Out</button>
             </div>
-            <button id="fit">Fit</button>
-            <button id="mirror">Mirror</button> 
-            <button id="reset">Reset</button>
+            <button class="btn" id="fit">Fit</button>
+            <button class="btn" id="mirror">Mirror</button> 
+            <button class="btn" id="reset">Reset</button>
           </div>
         </div>
         <div id="content_code" class="hide">
