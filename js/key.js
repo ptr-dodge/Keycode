@@ -1,3 +1,6 @@
+import HoverAndTouchHandler from "./HoverAndTouchHandler.js";
+import Tabs from "./Tabs.js";
+
 "use strict";
 
 let config = {
@@ -1199,29 +1202,34 @@ function help() {
   );
 }
 
-// Initialize tabs by assigning click handlers and triggering the first one
-function initializeTabs(tabList) {
-  let first = true;
-  Array.from(tabList).forEach((tabElement) => {
-    const id = tabElement.id;
-    tabElement.onclick = () => handleTabClick(id, tabList);
-
-    // Trigger the first tab click
-    if (first) tabElement.onclick();
-    first = false;
-  });
-}
+// Optional: Tab configuration for per-tab logic
+const tabConfig = {
+  tab_align: {
+    onSelect: () => { render(); }
+  },
+  tab_code: {
+    onSelect: () => { getKeyCode(); render(); makeKeyCodeHtml(); }
+  },
+  // Add more tab configs as needed
+};
 
 // Handle clicking a tab by performing checks, updating UI, and rendering content
-function handleTabClick(id, tabList) {
+function handleTabClick(id, tabList, options = {}) {
   if (!validateTabClick(id)) return;
 
-  const tabContentId = "content_" + id.slice(4);
+  // Allow custom content ID logic
+  const getContentId = options.getContentId || ((id) => "content_" + id.replace(/^tab_/, ""));
+  const tabContentId = getContentId(id);
+
   showTabContent(tabContentId);
   highlightSelectedTab(id, tabList);
 
-  render();
-  makeKeyCodeHtml();
+  // Per-tab logic if configured
+  if (tabConfig[id] && typeof tabConfig[id].onSelect === "function") {
+    tabConfig[id].onSelect();
+  } else if (typeof options.onSelect === "function") {
+    options.onSelect(id);
+  }
 }
 
 // Validate if the tab click is allowed based on tab ID and app state
@@ -1258,33 +1266,12 @@ function highlightSelectedTab(selectedId, tabList) {
 }
 
 // Function to initialize hover and touch behaviors for the elements
+let hoverAndTouchHandler;
 function initializeHoverAndTouch() {
-  const elements = document.querySelectorAll("button, div#list_of_tabs a");
-
-  // Add hover effect
-  elements.forEach(function (element) {
-    element.addEventListener("mouseenter", function (ev) {
-      const now = new Date().getTime();
-      if (now < ev.target.blockMouseEnterUntil) return;
-      ev.target.classList.add("fakehover");
-    });
-
-    element.addEventListener("mouseleave", function (ev) {
-      ev.target.classList.remove("fakehover");
-    });
-
-    function removeFakeHover(ev) {
-      ev.target.classList.remove("fakehover");
-      const t = new Date().getTime() + 1000;
-      ev.target.blockMouseEnterUntil = t;
-    }
-
-    element.ontouchstart = removeFakeHover;
-    element.ontouchend = removeFakeHover;
-    element.addEventListener("click", removeFakeHover);
-    element.blockMouseEnterUntil = 0;
-  });
+  hoverAndTouchHandler = new HoverAndTouchHandler();
+  hoverAndTouchHandler.init();
 }
+
 // Helper to get position relative to target's bounding rect
 function getRelativePosition(ev, target) {
   let rect = target.getBoundingClientRect();
@@ -1544,107 +1531,112 @@ function touchMove(ev) {
   render();
 }
 
+function addEventListeners(listeners) {
+  listeners.forEach(({ selector, event, handler, all }) => {
+    const elements = all
+      ? document.querySelectorAll(selector)
+      : [document.querySelector(selector)];
+    elements.forEach((el) => {
+      if (el) el.addEventListener(event, handler);
+    });
+  });
+}
+
 function main() {
-  // Get the list of tabs and initialize the tab functionality
+  // Tabs setup
   const tabList = document.getElementById("list_of_tabs").children;
-  initializeTabs(tabList);
+  new Tabs(tabList, (id, tabList) => handleTabClick(id, tabList));
 
-  // Event listeners for buttons
-  document
-    .querySelector("#types select")
-    .addEventListener("change", function (event) {
-      const selectedValue = event.target.value.split("-");
-      const type = selectedValue[0];
-      const number = parseInt(selectedValue[1], 10);
+  // Event listener configuration
+  addEventListeners([
+    {
+      selector: "#types select",
+      event: "change",
+      handler: function (event) {
+        const [type, number] = event.target.value.split("-");
+        bitting(type, parseInt(number, 10));
+      },
+    },
+    { selector: "#loadSample", event: "click", handler: () => loadSampleImage() },
+    { selector: "#zoomIn", event: "click", handler: () => zoom(1) },
+    { selector: "#zoomOut", event: "click", handler: () => zoom(-1) },
+    { selector: "#fit", event: "click", handler: () => resetViewport() },
+    { selector: "#mirror", event: "click", handler: () => mirror() },
+    {
+      selector: "#reset",
+      event: "click",
+      handler: () => {
+        resetHomography();
+        render();
+      },
+    },
+    {
+      selector: "#modal_ok",
+      event: "click",
+      handler: () => document.querySelector("#modal_outer").close(),
+    },
+    {
+      selector: "#fileButton",
+      event: "click",
+      handler: () => document.querySelector("#file").click(),
+    },
+    {
+      selector: "#help",
+      event: "click",
+      handler: help,
+    },
+    {
+      selector: "#file",
+      event: "change",
+      handler: (ev) => {
+        let fr = new FileReader();
+        fr.onload = function () {
+          let dataUri = fr.result;
+          loadImage(dataUri, false);
+        };
+        fr.readAsDataURL(ev.target.files[0]);
+      },
+    },
+    // Multiple elements
+    {
+      selector: "#nextButton",
+      event: "click",
+      all: true,
+      handler: (e) => {
+        const tabId = e.currentTarget.getAttribute("data-tabid");
+        const tab = document.getElementById(tabId);
+        if (tab) tab.click();
+      },
+    },
+    {
+      selector: "input[name=manip_mouse]",
+      event: "change",
+      all: true,
+      handler: () => render(),
+    },
+  ]);
 
-      // Call the bitting function with the parsed values
-      bitting(type, number);
-    });
-
-  document.getElementById("loadSample").addEventListener("click", () => {
-    loadSampleImage();
-  });
-
-  document.getElementById("zoomIn").addEventListener("click", () => {
-    zoom(1);
-  });
-  document.getElementById("zoomOut").addEventListener("click", () => {
-    zoom(-1);
-  });
-
-  document.getElementById("fit").addEventListener("click", () => {
-    resetViewport();
-  });
-  document.getElementById("mirror").addEventListener("click", () => {
-    mirror();
-  });
-  document.getElementById("reset").addEventListener("click", () => {
-    resetHomography();
-    render();
-  });
-
-  // handle the "ok" button for the modal
-  document.querySelector("#modal_ok").addEventListener("click", () => {
-    document.querySelector("#modal_outer").close();
-  });
-
-  // Sample image button
-  const sampleImageButton = document.getElementById("fileButton");
-  sampleImageButton.addEventListener("click", () => {
-    document.querySelector("#file").click();
-  });
-
-  // Set up click listeners for each next button
-  const nextButtons = document.querySelectorAll("#nextButton");
-  nextButtons.forEach((button) => {
-    button.addEventListener("click", () => {
-      // Get the data-tabid attribute of the clicked button
-      const tabId = button.getAttribute("data-tabid");
-
-      // Trigger the click event of the tab to advance to
-      const tab = document.getElementById(tabId);
-      if (tab) tab.click();
-    });
-  });
-
-  const helpButton = document.querySelector("#help");
-  helpButton.addEventListener("click", help);
-
-  // Initialize behavior
-  initializeHoverAndTouch();
-
-  document.getElementById("file").addEventListener("change", (ev) => {
-    let fr = new FileReader();
-    fr.onload = function () {
-      let dataUri = fr.result;
-      loadImage(dataUri, false);
-    };
-    fr.readAsDataURL(ev.target.files[0]);
-  });
-
-  renderer = new THREE.WebGLRenderer({
-    antialias: true,
-  });
+  // Renderer and canvas setup (unchanged)
+  renderer = new THREE.WebGLRenderer({ antialias: true });
   renderer.setSize(config.vw, config.vh);
 
   let al = document.getElementById("align");
   al.appendChild(renderer.domElement);
-  al.addEventListener("mouseup", mouseUp);
-  al.addEventListener("mousedown", mouseDown);
-  al.addEventListener("mousemove", mouseMove);
 
-  document.addEventListener("wheel", handleInput); // Mouse wheel
-  document.addEventListener("keydown", handleInput); // Arrow keys
+  // Use addEventListeners for renderer and document events
+  addEventListeners([
+    { selector: "#align", event: "mouseup", handler: mouseUp },
+    { selector: "#align", event: "mousedown", handler: mouseDown },
+    { selector: "#align", event: "mousemove", handler: mouseMove },
+    { selector: "#align", event: "touchstart", handler: touchStart },
+    { selector: "#align", event: "touchend", handler: touchEnd },
+    { selector: "#align", event: "touchmove", handler: touchMove },
+    { selector: "document", event: "wheel", handler: handleInput },
+    { selector: "document", event: "keydown", handler: handleInput },
+  ]);
 
-  al.addEventListener("touchstart", touchStart);
-  al.addEventListener("touchend", touchEnd);
-  al.addEventListener("touchmove", touchMove);
-
-  document.querySelectorAll("input[name=manip_mouse]").forEach((input) => {
-    input.addEventListener("change", () => {
-      render();
-    });
-  });
+  // Initialize behavior
+  initializeHoverAndTouch();
 }
 
 export { main };
