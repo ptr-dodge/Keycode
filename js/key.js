@@ -1,54 +1,10 @@
-import HoverAndTouchHandler from "./HoverAndTouchHandler.js";
 import Tabs from "./Tabs.js";
+import TouchAndMouseHandler from "./TouchAndMouseHandler.js";
+import Config from "./config.js";
+import Vector2 from "./Vector2.js";
+import Bitting from "./Bitting.js";
 
 "use strict";
-
-let config = {
-  pixelsPerInch: 360,
-  vw: 700,
-  vh: 660,
-
-  // position at most recent mouse-down
-  mdx: 0,
-  mdy: 0,
-  mdt: 0,
-
-  // most recent mouse move or down position
-  mx: 0,
-  my: 0,
-
-  // most recent touch positions and touch down positions, per id
-  touch: {},
-  touchDown: {},
-
-  // viewport zoom and pan
-  vdx: 0,
-  vdy: 0,
-  va: 1,
-
-  // rectangular photograph maps to this quad
-  pa: Vector2(0, 0),
-  pb: Vector2(0, 0),
-  pc: Vector2(0, 0),
-  pd: Vector2(0, 0),
-  // hg is homography from photo bitmap coords to screen (rectified) coords, inverseHomography is inverse
-  homography: [],
-  inverseHomography: [],
-
-  // brands: {
-  //   kw: {
-  //     spacings: [0.247, 0.397, 0.547, 0.697, 0.847, 0.997],
-  //     depths: ["unused", 0.329, 0.306, 0.283, 0.26, 0.237, 0.214, 0.191],
-  //     width: "0.335",
-  //   },
-
-  //   sc: {
-  //     spacings: [0.231, 0.3872, 0.5434, 0.6996, 0.8558, 1.012],
-  //     depths: [0.335, 0.32, 0.305, 0.29, 0.275, 0.26, 0.245, 0.23, 0.215, 0.2],
-  //     width: "0.343",
-  //   },
-  // },
-};
 
 let renderer;
 let photoTexture;
@@ -60,48 +16,7 @@ let codeValue = [];
 let manualDepths = {};
 let pool;
 
-function bitting(brand, pins) {
-  let spacings = [];
-  let depths = [];
-  let width = "";
-
-  let spacingsInput = document.getElementById("bitting_spacings");
-  let widthInput = document.getElementById("bitting_width");
-  let depthInput = document.getElementById("bitting_depths");
-
-  switch (brand) {
-    case "kw":
-      spacings = [0.247, 0.397, 0.547, 0.697, 0.847, 0.997];
-      depths = ["unused", 0.329, 0.306, 0.283, 0.26, 0.237, 0.214, 0.191];
-      width = "0.335";
-      break;
-
-    case "sc":
-      spacings = [0.231, 0.3872, 0.5434, 0.6996, 0.8558, 1.012];
-      depths = [0.335, 0.32, 0.305, 0.29, 0.275, 0.26, 0.245, 0.23, 0.215, 0.2];
-      width = "0.343";
-      break;
-    // we can add more cases for handling more key types
-    default:
-      // Handle unexpected brand values here if needed
-      break;
-  }
-
-  spacings = spacings.slice(0, pins);
-
-  spacingsInput.value = spacings
-    .map(function (x) {
-      return x.toFixed(4);
-    })
-    .join(", ");
-
-  widthInput.value = width;
-  depthInput.value = depths
-    .map(function (x) {
-      return x === "unused" ? x : x.toFixed(3);
-    })
-    .join(", ");
-}
+let config = new Config(Vector2);
 
 function loadImage(uri, sample) {
   let photoElement = document.getElementById("photo");
@@ -174,7 +89,12 @@ function loadImage(uri, sample) {
 function loadSampleImage() {
   const sampleImage = "./images/sample.jfif";
 
-  bitting("kw", 5);
+  // Use the new Bitting class
+  const bittingObj = new Bitting("kw", 5);
+  document.getElementById("bitting_spacings").value = bittingObj.getSpacings().map(x => x.toFixed(4)).join(", ");
+  document.getElementById("bitting_width").value = bittingObj.getWidth();
+  document.getElementById("bitting_depths").value = bittingObj.getDepths().map(x => x === "unused" ? x : x.toFixed(3)).join(", ");
+
   loadImage(sampleImage, true);
 
   config.homography = [
@@ -185,14 +105,14 @@ function loadSampleImage() {
 
   config.inverseHomography = [
     0.003369933236284373, -0.00013161138854292278, -0.00045605621394176343,
-    0.00007863264438711157, 0.0020134029791094104, -0.23451188452733207,
-    -3.5210555230054996e-18, -2.1255039632640669e-19, 0.9721052074142724,
+    0.0001098579642820736, 0.0023818579642820736, -0.00045605621394176343,
+    0, 0, 1,
   ];
 
-  config.pa = Vector2(-1, -1).hg();
-  config.pb = Vector2(-1, 1).hg();
-  config.pc = Vector2(1, 1).hg();
-  config.pd = Vector2(1, -1).hg();
+  config.pa = new Vector2(-1, -1).hg(config);
+  config.pb = new Vector2(-1, 1).hg(config);
+  config.pc = new Vector2(1, 1).hg(config);
+  config.pd = new Vector2(1, -1).hg(config);
 
   solveForHomography();
   resetViewport();
@@ -266,7 +186,7 @@ function solveForHomography() {
   }
 
   let outs = [config.pa, config.pb, config.pc, config.pd],
-    ins = [Vector2(-1, -1), Vector2(-1, 1), Vector2(1, 1), Vector2(1, -1)];
+    ins = [new Vector2(-1, -1), new Vector2(-1, 1), new Vector2(1, 1), new Vector2(1, -1)];
 
   solve(ins, outs, config.homography);
   solve(outs, ins, config.inverseHomography);
@@ -286,63 +206,16 @@ function resetHomography() {
   } else {
     mx = my * r;
   }
-  config.pa = Vector2(-mx, -my);
-  config.pb = Vector2(-mx, my);
-  config.pc = Vector2(mx, my);
-  config.pd = Vector2(mx, -my);
+  config.pa = new Vector2(-mx, -my);
+  config.pb = new Vector2(-mx, my);
+  config.pc = new Vector2(mx, my);
+  config.pd = new Vector2(mx, -my);
 
   config.homography = [mx, 0, 0, 0, my, 0, 0, 0, 1];
   config.inverseHomography = [1 / mx, 0, 0, 0, 1 / my, 0, 0, 0, 1];
   normalizeHomography();
 
   resetViewport();
-}
-
-function Vector2(x, y) {
-  return {
-    x: x,
-    y: y,
-    plus: function (b) {
-      return Vector2(this.x + b.x, this.y + b.y);
-    },
-    minus: function (b) {
-      return Vector2(this.x - b.x, this.y - b.y);
-    },
-    scaledBy: function (k) {
-      return Vector2(this.x * k, this.y * k);
-    },
-    lengthSquared: function () {
-      return x ** 2 + y ** 2;
-    },
-    length: function () {
-      return Math.sqrt(x ** 2 + y ** 2);
-    },
-    rotatedAboutOrigin: function (theta) {
-      let c = Math.cos(theta),
-        s = Math.sin(theta);
-      return Vector2(c * x + s * y, -s * x + c * y);
-    },
-    TV3: function (k) {
-      return new THREE.Vector3(this.x, this.y, 1);
-    },
-    afterHomography: function (hg) {
-      let denom = hg[6] * x + hg[7] * y + hg[8];
-
-      return Vector2(
-        (hg[0] * x + hg[1] * y + hg[2]) / denom,
-        (hg[3] * x + hg[4] * y + hg[5]) / denom
-      );
-    },
-    hg: function () {
-      return this.afterHomography(config.homography);
-    },
-    inverseHomography: function () {
-      return this.afterHomography(config.inverseHomography);
-    },
-    toString: function () {
-      return "(" + x.toFixed(6) + ", " + y.toFixed(6) + ")";
-    },
-  };
 }
 
 function parseBittings() {
@@ -523,11 +396,11 @@ function getKeyCode() {
         tg = 0,
         tb = 0;
       [-0.002, -0.001, 0, 0.001, 0.002].forEach(function (dy) {
-        let pt = Vector2(
+        let pt = new Vector2(
             x * config.pixelsPerInch,
             (y + dy) * config.pixelsPerInch
           ),
-          bpt = pt.inverseHomography();
+          bpt = pt.inverseHomography(config);
         let bx = (((bpt.x + 1) / 2) * photoWidth) | 0,
           by = (((-bpt.y + 1) / 2) * photoHeight) | 0;
 
@@ -843,15 +716,15 @@ function render() {
     lgs = pool.g.l;
 
   function line(x0, y0, x1, y1, w, color) {
-    let p0 = Vector2(x0, y0),
-      p1 = Vector2(x1, y1),
+    let p0 = new Vector2(x0, y0),
+      p1 = new Vector2(x1, y1),
       dp = p1.minus(p0),
       l = dp.length();
 
     // get fatter as we zoom in, but not too fat
     dp = dp.scaledBy(w / (Math.sqrt(config.va) * l * 2));
 
-    let n = Vector2(-dp.y, dp.x),
+    let n = new Vector2(-dp.y, dp.x),
       a = p0.plus(n),
       b = p1.plus(n),
       c = p1.minus(n),
@@ -948,7 +821,7 @@ function render() {
     let x = -b.width / 2 + sp.xedge;
     inchLine(x, sp.y - 0.03, x, sp.y + 0.03, 1, "y");
     if (sp.manual) {
-      let o = Vector2(x - 0.04, sp.y + 0.02),
+      let o = new Vector2(x - 0.04, sp.y + 0.02),
         l = 0.03,
         ly = 0.02,
         r = 0.013;
@@ -984,10 +857,10 @@ function render() {
         v0 = j / n,
         v1 = (j + 1) / n;
 
-      let qa = Vector2(u0 * 2 - 1, v0 * 2 - 1).hg(),
-        qb = Vector2(u0 * 2 - 1, v1 * 2 - 1).hg(),
-        qc = Vector2(u1 * 2 - 1, v1 * 2 - 1).hg(),
-        qd = Vector2(u1 * 2 - 1, v0 * 2 - 1).hg();
+      let qa = new Vector2(u0 * 2 - 1, v0 * 2 - 1).hg(config),
+        qb = new Vector2(u0 * 2 - 1, v1 * 2 - 1).hg(config),
+        qc = new Vector2(u1 * 2 - 1, v1 * 2 - 1).hg(config),
+        qd = new Vector2(u1 * 2 - 1, v0 * 2 - 1).hg(config);
 
       pg.vertices.push(qa.TV3(), qb.TV3(), qc.TV3());
       pg.faces.push(new THREE.Face3(c++, c++, c++));
@@ -1021,10 +894,10 @@ function render() {
       let xs = i & 1 ? 1 : -1,
         ys = i & 2 ? 1 : -1,
         m = 600 / config.va;
-      let a = Vector2(config.vdx, -config.vdy);
-      let b = a.plus(Vector2(0, m * ys));
-      let c = b.plus(Vector2(m * xs, 0));
-      let d = a.plus(Vector2(m * xs, 0));
+      let a = new Vector2(config.vdx, -config.vdy);
+      let b = a.plus(new Vector2(0, m * ys));
+      let c = b.plus(new Vector2(m * xs, 0));
+      let d = a.plus(new Vector2(m * xs, 0));
 
       let tg = pool.g.q[i];
       tg.vertices.push(a.TV3(), b.TV3(), c.TV3());
@@ -1047,18 +920,17 @@ function render() {
   pool.g.p.dispose();
 }
 
-function fromMouse(x, y) {
+function fromMouse(x, y, config) {
   if (typeof x === "object") {
     y = x.y;
     x = x.x;
   }
-
-  let r = Vector2(x, -y).minus(Vector2(config.vw / 2, -config.vh / 2));
+  let r = new Vector2(x, -y).minus(new Vector2(config.vw / 2, -config.vh / 2));
   r = r.scaledBy(1 / config.va);
-  return r.minus(Vector2(-config.vdx, config.vdy));
+  return r.minus(new Vector2(-config.vdx, config.vdy));
 }
 
-function onePointMoveInteraction(x, y, xp, yp, xd, yd) {
+function onePointMoveInteraction(x, y, xp, yp, xd, yd, config) {
   // Helper function to handle viewport movement
   function handleViewportMove(dx, dy) {
     config.vdx += dx / config.va;
@@ -1067,7 +939,7 @@ function onePointMoveInteraction(x, y, xp, yp, xd, yd) {
 
   // Helper function to handle object movement
   function handleMove(dx, dy) {
-    let dp = Vector2(-dx, dy).scaledBy(1 / config.va);
+    let dp = new Vector2(-dx, dy).scaledBy(1 / config.va);
     ["pa", "pb", "pc", "pd"].forEach(function (p) {
       config[p] = config[p].plus(dp);
     });
@@ -1075,9 +947,9 @@ function onePointMoveInteraction(x, y, xp, yp, xd, yd) {
 
   // Helper function to handle rotation and scaling
   function handleRotateScale(x, y, xp, yp) {
-    let c = Vector2(0, config.vh / 4);
-    let prev = fromMouse(xp, yp).minus(c);
-    let now = fromMouse(x, y).minus(c);
+    let c = new Vector2(0, config.vh / 4);
+    let prev = fromMouse(xp, yp, config).minus(c);
+    let now = fromMouse(x, y, config).minus(c);
 
     let thp = Math.atan2(prev.y, prev.x);
     let thn = Math.atan2(now.y, now.x);
@@ -1113,7 +985,7 @@ function onePointMoveInteraction(x, y, xp, yp, xd, yd) {
 
     p = p[i];
 
-    config[p] = config[p].plus(Vector2(-dx, dy).scaledBy(1 / config.va));
+    config[p] = config[p].plus(new Vector2(-dx, dy).scaledBy(1 / config.va));
   }
 
   let dx = xp - x;
@@ -1145,9 +1017,9 @@ function onePointMoveInteraction(x, y, xp, yp, xd, yd) {
   solveForHomography();
 }
 
-function onePointTapInteraction(x, y) {
+function onePointTapInteraction(x, y, config) {
   let b = parseBittings(),
-    p = fromMouse(x, y).scaledBy(1 / config.pixelsPerInch),
+    p = fromMouse(x, y, config).scaledBy(1 / config.pixelsPerInch),
     mx = p.x + b.width / 2,
     tol = 0.01;
 
@@ -1266,11 +1138,8 @@ function highlightSelectedTab(selectedId, tabList) {
 }
 
 // Function to initialize hover and touch behaviors for the elements
-let hoverAndTouchHandler;
-function initializeHoverAndTouch() {
-  hoverAndTouchHandler = new HoverAndTouchHandler();
-  hoverAndTouchHandler.init();
-}
+// (Now handled by TouchAndMouseHandler)
+
 
 // Helper to get position relative to target's bounding rect
 function getRelativePosition(ev, target) {
@@ -1296,7 +1165,7 @@ function saveTouches(ev, down) {
 
     config.touch[id] = Vector2(x, y);
     if (down) {
-      config.touchDown[id] = Vector2(x, y);
+      config.touchDown[id] = new Vector2(x, y);
       config.touchDown[id].t = Date.now();
     }
   }
@@ -1305,8 +1174,8 @@ function saveTouches(ev, down) {
 // Handles mouse up event, with tap detection logic
 function mouseUp(event) {
   let currentDate = Date.now() - config.mdt;
-  let point1 = Vector2(event.offsetX, event.offsetY);
-  let point2 = Vector2(config.mdx, config.mdy)
+  let point1 = new Vector2(event.offsetX, event.offsetY);
+  let point2 = new Vector2(config.mdx, config.mdy)
 
   if (isTap(point1, point2, currentDate)) {
     onePointTapInteraction(event.offsetX, event.offsetY);
@@ -1337,7 +1206,8 @@ function mouseMove(event) {
     config.mx,
     config.my,
     config.mdx,
-    config.mdy
+    config.mdy,
+    config // Pass config as the last argument
   );
 
   config.mx = event.offsetX;
@@ -1460,7 +1330,8 @@ function touchMove(ev) {
       config.touch[id].x,
       config.touch[id].y,
       config.touchDown[id].x,
-      config.touchDown[id].y
+      config.touchDown[id].y,
+      config // Pass config as the last argument
     );
 
     config.touch[id] = Vector2(x, y);
@@ -1510,8 +1381,8 @@ function touchMove(ev) {
 
       case "move":
       case "rotate_scale":
-        dc = fromMouse(dc).minus(fromMouse(0, 0));
-        c = fromMouse(c);
+        dc = fromMouse(dc, config).minus(fromMouse(0, 0, config));
+        c = fromMouse(c, config);
         // scale factor and rotation angle unaffected by transform
 
         ["pa", "pb", "pc", "pd"].forEach(function (p) {
@@ -1554,7 +1425,10 @@ function main() {
       event: "change",
       handler: function (event) {
         const [type, number] = event.target.value.split("-");
-        bitting(type, parseInt(number, 10));
+        const bittingObj = new Bitting(type, parseInt(number, 10));
+        document.getElementById("bitting_spacings").value = bittingObj.getSpacings().map(x => x.toFixed(4)).join(", ");
+        document.getElementById("bitting_width").value = bittingObj.getWidth();
+        document.getElementById("bitting_depths").value = bittingObj.getDepths().map(x => x === "unused" ? x : x.toFixed(3)).join(", ");
       },
     },
     { selector: "#loadSample", event: "click", handler: () => loadSampleImage() },
@@ -1635,8 +1509,18 @@ function main() {
     { selector: "document", event: "keydown", handler: handleInput },
   ]);
 
-  // Initialize behavior
-  initializeHoverAndTouch();
+  // Initialize behavior using TouchAndMouseHandler
+  const touchHandler = new TouchAndMouseHandler(config, { render });
+  // Attach event listeners for mouse and touch events
+  document.getElementById("align").addEventListener("mousedown", touchHandler.mouseDown.bind(touchHandler));
+  document.getElementById("align").addEventListener("mouseup", touchHandler.mouseUp.bind(touchHandler));
+  document.getElementById("align").addEventListener("mousemove", touchHandler.mouseMove.bind(touchHandler));
+  document.getElementById("align").addEventListener("touchstart", touchHandler.touchStart.bind(touchHandler));
+  document.getElementById("align").addEventListener("touchend", touchHandler.touchEnd.bind(touchHandler));
+  document.getElementById("align").addEventListener("touchmove", touchHandler.touchMove.bind(touchHandler));
+  document.addEventListener("wheel", touchHandler.handleInput.bind(touchHandler));
+  document.addEventListener("keydown", touchHandler.handleInput.bind(touchHandler));
+
 }
 
-export { main };
+export { main, onePointTapInteraction, solveForHomography };
