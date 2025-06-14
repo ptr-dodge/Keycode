@@ -58,7 +58,7 @@ class TouchAndMouseHandler {
     let point1 = new Vector2(event.offsetX, event.offsetY);
     let point2 = new Vector2(this.config.mdx, this.config.mdy)
     if (this.isTap(point1, point2, currentDate)) {
-      onePointTapInteraction(event.offsetX, event.offsetY);
+      onePointTapInteraction(event.offsetX, event.offsetY, this.config);
     }
     event.preventDefault();
   }
@@ -156,7 +156,7 @@ class TouchAndMouseHandler {
         dd = p.minus(this.config.touchDown[id]).length(),
         dt = Date.now() - this.config.touchDown[id].t;
       if (dt < 200 && dd < 10) {
-        onePointTapInteraction(p.x, p.y);
+        onePointTapInteraction(p.x, p.y, this.config);
       }
     }
     ev.preventDefault();

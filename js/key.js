@@ -397,9 +397,9 @@ function getKeyCode() {
         tb = 0;
       [-0.002, -0.001, 0, 0.001, 0.002].forEach(function (dy) {
         let pt = new Vector2(
-            x * config.pixelsPerInch,
-            (y + dy) * config.pixelsPerInch
-          ),
+          x * config.pixelsPerInch,
+          (y + dy) * config.pixelsPerInch
+        ),
           bpt = pt.inverseHomography(config);
         let bx = (((bpt.x + 1) / 2) * photoWidth) | 0,
           by = (((-bpt.y + 1) / 2) * photoHeight) | 0;
@@ -921,6 +921,9 @@ function render() {
 }
 
 function fromMouse(x, y, config) {
+  if (!config) {
+    throw new Error("fromMouse: config is undefined. Ensure a valid config object is passed.");
+  }
   if (typeof x === "object") {
     y = x.y;
     x = x.x;
@@ -1137,10 +1140,6 @@ function highlightSelectedTab(selectedId, tabList) {
   });
 }
 
-// Function to initialize hover and touch behaviors for the elements
-// (Now handled by TouchAndMouseHandler)
-
-
 // Helper to get position relative to target's bounding rect
 function getRelativePosition(ev, target) {
   let rect = target.getBoundingClientRect();
@@ -1150,11 +1149,8 @@ function getRelativePosition(ev, target) {
   };
 }
 
-// Helper to check if a touch is within a threshold (for tap)
-function isTap(p1, p2, dt, threshold = 10, timeLimit = 200) {
-  let distance = p1.minus(p2).length();
-  return dt < timeLimit && distance < threshold;
-}
+// Function to initialize hover and touch behaviors for the elements
+// (Now handled by TouchAndMouseHandler)
 
 // Handles touch event saving
 function saveTouches(ev, down) {
@@ -1171,237 +1167,7 @@ function saveTouches(ev, down) {
   }
 }
 
-// Handles mouse up event, with tap detection logic
-function mouseUp(event) {
-  let currentDate = Date.now() - config.mdt;
-  let point1 = new Vector2(event.offsetX, event.offsetY);
-  let point2 = new Vector2(config.mdx, config.mdy)
-
-  if (isTap(point1, point2, currentDate)) {
-    onePointTapInteraction(event.offsetX, event.offsetY);
-  }
-  
-  event.preventDefault();
-}
-
-// Handles mouse down event, saving initial mouse position and time
-function mouseDown(event) {
-  config.mx = event.offsetX;
-  config.my = event.offsetY;
-
-  config.mdx = config.mx;
-  config.mdy = config.my;
-
-  config.mdt = Date.now();
-
-  event.preventDefault();
-}
-
-function mouseMove(event) {
-  if (!(event.buttons & 1)) return;
-
-  onePointMoveInteraction(
-    event.offsetX,
-    event.offsetY,
-    config.mx,
-    config.my,
-    config.mdx,
-    config.mdy,
-    config // Pass config as the last argument
-  );
-
-  config.mx = event.offsetX;
-  config.my = event.offsetY;
-
-  event.preventDefault();
-  render();
-}
-
-
-// Function to handle both mouse wheel and arrow key input
-function handleInput(event) {
-  let quantum = 500; // Quantum for mouse wheel normalization
-  let d = 0; // Delta value for input scaling
-  let translation = { x: 0, y: 0 }; // Translation values
-  let scaleFactor = Math.exp(-d / 30);
-
-  // Check if it's a mouse wheel event
-  if (event.type === "wheel") {
-    d = event.deltaY;
-    // Normalize deltaY to the initial quantum value
-    if (Math.abs(d) < quantum) {
-      quantum = Math.abs(d);
-    }
-    d /= quantum;
-    // Zoom behavior (kept here if needed in the future)
-  }
-  // Check if it's an arrow key event
-  else if (event.type === "keydown") {
-    // Arrow keys: up (38), down (40), left (37), right (39)
-    switch (event.key) {
-      case "ArrowUp":
-        translation.y = scaleFactor; // Move up
-        break;
-      case "ArrowDown":
-        translation.y = -scaleFactor; // Move down
-        break;
-      case "ArrowLeft":
-        translation.x = -scaleFactor; // Move left
-        break;
-      case "ArrowRight":
-        translation.x = scaleFactor; // Move right
-        break;
-      default:
-        return; // Ignore other keys
-    }
-  }
-
-  // Get the value of the selected manipulation mode without jQuery
-  const manipulationMode = document.querySelector(
-    "input[name=manip_mouse]:checked"
-  );
-  if (!manipulationMode) return; // If no input is checked, exit early
-  const mode = manipulationMode.value;
-
-  // Apply transformation based on the manipulation mode
-  switch (mode) {
-    case "viewport":
-      // Translate the viewport
-      config.vx += translation.x;
-      config.vy += translation.y;
-      break;
-
-    case "move":
-      // Translate the elements (e.g., homography points)
-      ["pa", "pb", "pc", "pd"].forEach((point) => {
-        config[point].x += translation.x;
-        config[point].y += translation.y;
-      });
-      solveForHomography();
-      break;
-  }
-
-  // Prevent default behavior (for arrow keys, prevent page scroll)
-  if (event.type === "keydown") {
-    event.preventDefault();
-  }
-
-  // Render the updated view
-  render();
-}
-
-
-function touchStart(ev) {
-  saveTouches(ev, true);
-
-  ev.preventDefault();
-}
-
-function touchEnd(ev) {
-  let r = ev.target.getBoundingClientRect();
-
-  if (ev.changedTouches.length == 1 && ev.touches.length == 0) {
-    let touch = ev.changedTouches[0],
-      p = Vector2(touch.pageX - r.left, touch.pageY - r.top),
-      id = touch.identifier,
-      dd = p.minus(config.touchDown[id]).length(),
-      dt = Date.now() - config.touchDown[id].t;
-
-    if (dt < 200 && dd < 10) {
-      onePointTapInteraction(p.x, p.y);
-    }
-  }
-
-  ev.preventDefault();
-}
-
-function touchMove(ev) {
-  let boundingRect = ev.target.getBoundingClientRect();
-
-  if (ev.touches.length == 1) {
-    let touch = ev.touches[0],
-      x = touch.pageX - boundingRect.left,
-      y = touch.pageY - boundingRect.top,
-      id = touch.identifier;
-
-    onePointMoveInteraction(
-      x,
-      y,
-      config.touch[id].x,
-      config.touch[id].y,
-      config.touchDown[id].x,
-      config.touchDown[id].y,
-      config // Pass config as the last argument
-    );
-
-    config.touch[id] = Vector2(x, y);
-  } else if (ev.touches.length == 2) {
-    let touch0 = ev.touches[0],
-      t0 = Vector2(
-        touch0.pageX - boundingRect.left,
-        touch0.pageY - boundingRect.top
-      ),
-      t0p = config.touch[touch0.identifier],
-      touch1 = ev.touches[1],
-      t1 = Vector2(
-        touch1.pageX - boundingRect.left,
-        touch1.pageY - boundingRect.top
-      ),
-      t1p = config.touch[touch1.identifier];
-
-    let d = t0.minus(t1),
-      dp = t0p.minus(t1p),
-      c = t0.plus(t1).scaledBy(0.5),
-      cp = t0p.plus(t1p).scaledBy(0.5),
-      dc = c.minus(cp);
-
-    let l = d.length(),
-      lp = dp.length(),
-      a = l / lp;
-
-    let th = Math.atan2(d.y, d.x),
-      thp = Math.atan2(dp.y, dp.x),
-      theta = th - thp;
-
-    switch (document.querySelector("input[name=manip_mouse]:checked")?.value) {
-      case "viewport":
-        let nva = config.va * a;
-
-        let vhw = Vector2(config.vw / 2, config.vh / 2),
-          t0pm = Vector2(t0p.x, t0p.y).minus(vhw),
-          t0m = Vector2(t0.x, t0.y).minus(vhw);
-
-        let d = t0m.scaledBy(1 / nva).minus(t0pm.scaledBy(1 / config.va));
-
-        config.vdx -= d.x;
-        config.vdy += d.y;
-
-        config.va = nva;
-        break;
-
-      case "move":
-      case "rotate_scale":
-        dc = fromMouse(dc, config).minus(fromMouse(0, 0, config));
-        c = fromMouse(c, config);
-        // scale factor and rotation angle unaffected by transform
-
-        ["pa", "pb", "pc", "pd"].forEach(function (p) {
-          let pt = config[p];
-          pt = pt.plus(dc);
-          pt = pt.minus(c).scaledBy(a).rotatedAboutOrigin(theta).plus(c);
-          config[p] = pt;
-        });
-        solveForHomography();
-        break;
-    }
-  }
-
-  saveTouches(ev, false);
-
-  ev.preventDefault();
-  render();
-}
-
+// Removed: isTap, saveTouches, mouseUp, mouseDown, mouseMove, handleInput, touchStart, touchEnd, touchMove
 function addEventListeners(listeners) {
   listeners.forEach(({ selector, event, handler, all }) => {
     const elements = all
@@ -1497,29 +1263,22 @@ function main() {
   let al = document.getElementById("align");
   al.appendChild(renderer.domElement);
 
-  // Use addEventListeners for renderer and document events
-  addEventListeners([
-    { selector: "#align", event: "mouseup", handler: mouseUp },
-    { selector: "#align", event: "mousedown", handler: mouseDown },
-    { selector: "#align", event: "mousemove", handler: mouseMove },
-    { selector: "#align", event: "touchstart", handler: touchStart },
-    { selector: "#align", event: "touchend", handler: touchEnd },
-    { selector: "#align", event: "touchmove", handler: touchMove },
-    { selector: "document", event: "wheel", handler: handleInput },
-    { selector: "document", event: "keydown", handler: handleInput },
-  ]);
+  // Remove legacy event listeners for mouse/touch/keyboard events
+  // (Handled by TouchAndMouseHandler below)
 
   // Initialize behavior using TouchAndMouseHandler
   const touchHandler = new TouchAndMouseHandler(config, { render });
-  // Attach event listeners for mouse and touch events
-  document.getElementById("align").addEventListener("mousedown", touchHandler.mouseDown.bind(touchHandler));
-  document.getElementById("align").addEventListener("mouseup", touchHandler.mouseUp.bind(touchHandler));
-  document.getElementById("align").addEventListener("mousemove", touchHandler.mouseMove.bind(touchHandler));
-  document.getElementById("align").addEventListener("touchstart", touchHandler.touchStart.bind(touchHandler));
-  document.getElementById("align").addEventListener("touchend", touchHandler.touchEnd.bind(touchHandler));
-  document.getElementById("align").addEventListener("touchmove", touchHandler.touchMove.bind(touchHandler));
-  document.addEventListener("wheel", touchHandler.handleInput.bind(touchHandler));
-  document.addEventListener("keydown", touchHandler.handleInput.bind(touchHandler));
+  // Attach event listeners for mouse and touch events using addEventListeners
+  addEventListeners([
+    { selector: "#align", event: "mousedown", handler: touchHandler.mouseDown.bind(touchHandler) },
+    { selector: "#align", event: "mouseup", handler: touchHandler.mouseUp.bind(touchHandler) },
+    { selector: "#align", event: "mousemove", handler: touchHandler.mouseMove.bind(touchHandler) },
+    { selector: "#align", event: "touchstart", handler: touchHandler.touchStart.bind(touchHandler) },
+    { selector: "#align", event: "touchend", handler: touchHandler.touchEnd.bind(touchHandler) },
+    { selector: "#align", event: "touchmove", handler: touchHandler.touchMove.bind(touchHandler) },
+    { selector: "document", event: "wheel", handler: touchHandler.handleInput.bind(touchHandler) },
+    { selector: "document", event: "keydown", handler: touchHandler.handleInput.bind(touchHandler) },
+  ]);
 
 }
 
